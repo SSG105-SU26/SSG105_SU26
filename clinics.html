@@ -328,7 +328,7 @@ function filterClinics() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const last = Store.get('ms_last_result');
-  if (last && (last.result.next === 'urgent' || last.result.next === 'emergency')) {
+  if (last && (last.result.nextAction === 'urgent' || last.result.nextAction === 'emergency')) {
     const banner = document.querySelector('.urgent-banner');
     if (banner) banner.style.display = 'flex';
   }

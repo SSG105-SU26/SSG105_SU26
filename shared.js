@@ -125,7 +125,6 @@ function renderHeader(activePage) {
         <nav class="mobile-nav-container">
           ${mobileLinks}
         </nav>
-      </div>
     </div>
   </header>`;
 }
