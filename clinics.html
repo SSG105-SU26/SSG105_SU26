@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tìm Phòng Khám — MindBuddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="shared.js"></script>
+  <style>
+    .page-hero { background: linear-gradient(135deg,#0F2744 0%,#164e63 100%); padding: 3rem 0 3.5rem; color: #fff; }
+    .page-hero h1 { font-size: clamp(1.6rem,3vw,2.4rem); font-weight: 900; margin-bottom: .6rem; }
+    .page-hero p { font-size: .9rem; color: #cbd5e1; line-height: 1.75; max-width: 560px; }
+
+    /* FILTER ROW */
+    .filter-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 2rem; }
+    .filter-select { border: 2px solid #e2e8f0; border-radius: 10px; padding: .65rem 1rem; font-size: .82rem; font-weight: 500; color: #0F2744; background: #fff; cursor: pointer; min-width: 180px; font-family: inherit; transition: border-color .2s; }
+    .filter-select:focus { outline: none; border-color: #0D9488; }
+    .filter-search { border: 2px solid #e2e8f0; border-radius: 10px; padding: .65rem 1rem; font-size: .82rem; font-weight: 500; color: #0F2744; background: #fff; flex: 1; min-width: 200px; font-family: inherit; transition: border-color .2s; }
+    .filter-search:focus { outline: none; border-color: #0D9488; }
+    .result-count { font-size: .8rem; color: #64748b; font-weight: 600; margin-left: auto; }
+
+    /* URGENCY BANNER */
+    .urgent-banner { background: #fef2f2; border: 2px solid #fecaca; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start; }
+    .urgent-banner p { font-size: .82rem; line-height: 1.7; color: #7f1d1d; }
+
+    /* CLINIC CARDS */
+    .clinics-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 700px) { .clinics-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1000px) { .clinics-grid { grid-template-columns: repeat(3, 1fr); } }
+    .clinic-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: all .25s; display: flex; flex-direction: column; gap: .75rem; }
+    .clinic-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,39,68,.09); border-color: #CCFBF1; }
+    .clinic-type-tag { display: inline-block; padding: .22rem .7rem; border-radius: 99px; font-size: .65rem; font-weight: 700; letter-spacing: .3px; }
+    .tag-public { background: #dbeafe; color: #1d4ed8; }
+    .tag-private { background: #f3e8ff; color: #7c3aed; }
+    .tag-hospital { background: #fce7f3; color: #be185d; }
+    .tag-clinic { background: #CCFBF1; color: #0D9488; }
+    .clinic-name { font-size: .95rem; font-weight: 700; color: #0F2744; line-height: 1.35; }
+    .clinic-addr { font-size: .78rem; color: #64748b; line-height: 1.5; display: flex; align-items: flex-start; gap: .4rem; }
+    .clinic-phone { font-size: .82rem; font-weight: 700; color: #0D9488; display: flex; align-items: center; gap: .4rem; }
+    .clinic-hours { font-size: .75rem; color: #64748b; display: flex; align-items: center; gap: .4rem; }
+    .clinic-services { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .25rem; }
+    .service-pill { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: .18rem .6rem; font-size: .65rem; font-weight: 600; color: #475569; }
+    .clinic-cta { display: flex; gap: .6rem; margin-top: .5rem; }
+    .btn-map { flex: 1; background: #f0fdfa; color: #0D9488; border: 1.5px solid #CCFBF1; border-radius: 8px; padding: .55rem; font-size: .75rem; font-weight: 700; text-align: center; text-decoration: none; transition: all .2s; }
+    .btn-map:hover { background: #CCFBF1; }
+    .btn-call { flex: 1; background: linear-gradient(135deg,#0D9488,#0f766e); color: #fff; border: none; border-radius: 8px; padding: .55rem; font-size: .75rem; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; transition: all .2s; }
+    .btn-call:hover { box-shadow: 0 4px 14px rgba(13,148,136,.35); }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; color: #94a3b8; }
+    .empty-state h3 { font-size: 1.1rem; font-weight: 700; color: #64748b; margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+<div id="header-root"></div>
+
+<div class="page-hero">
+  <div class="container">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;">
+      <a href="index.html" style="color:#94a3b8;font-size:.8rem;text-decoration:none;">Trang Chủ</a>
+      <span style="color:#475569;">›</span>
+      <span style="color:#fff;font-size:.8rem;font-weight:600;">Tìm Phòng Khám</span>
+    </div>
+    <h1>Tìm Phòng Khám & Chuyên Gia</h1>
+    <p>Danh sách các cơ sở khám chữa bệnh tâm thần và tâm lý lâm sàng trên toàn quốc. Chọn tỉnh/thành gần bạn để bắt đầu.</p>
+  </div>
+</div>
+
+<div class="section" style="padding-top:2.5rem;">
+  <div class="container">
+
+    <!-- EMERGENCY BOX -->
+    <div class="urgent-banner">
+      <span style="font-size:1.5rem;flex-shrink:0;">🆘</span>
+      <p>
+        <strong>Cần hỗ trợ khẩn cấp?</strong> Gọi ngay <strong>1900 9095</strong> — đường dây hỗ trợ sức khỏe tâm thần miễn phí của Bộ Y tế, 24/7.
+        Hoặc đến phòng cấp cứu của bệnh viện gần nhất.
+      </p>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-row">
+      <select class="filter-select" id="province-filter" onchange="filterClinics()">
+        <option value="">Tất cả tỉnh/thành</option>
+        <option value="Hà Nội">Hà Nội</option>
+        <option value="TP.HCM">TP. Hồ Chí Minh</option>
+        <option value="Đà Nẵng">Đà Nẵng</option>
+        <option value="Huế">Huế</option>
+        <option value="Cần Thơ">Cần Thơ</option>
+        <option value="Hải Phòng">Hải Phòng</option>
+        <option value="Bình Dương">Bình Dương</option>
+        <option value="Đồng Nai">Đồng Nai</option>
+      </select>
+      <select class="filter-select" id="type-filter" onchange="filterClinics()">
+        <option value="">Tất cả loại hình</option>
+        <option value="public">Bệnh viện công</option>
+        <option value="private">Phòng khám tư</option>
+        <option value="hospital">Bệnh viện đa khoa</option>
+      </select>
+      <input type="text" class="filter-search" id="search-input" placeholder="🔍 Tìm theo tên hoặc địa chỉ..." oninput="filterClinics()">
+      <div class="result-count" id="result-count">— cơ sở</div>
+    </div>
+
+    <div class="clinics-grid" id="clinics-grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div>
+      <h3>Không tìm thấy kết quả</h3>
+      <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
+    </div>
+
+    <div style="background:#f0fdfa;border:1.5px solid #CCFBF1;border-radius:16px;padding:1.5rem 2rem;margin-top:3rem;">
+      <h3 style="font-size:.9rem;font-weight:700;color:#0F2744;margin-bottom:.75rem;">📌 Lưu ý về thông tin phòng khám</h3>
+      <p style="font-size:.78rem;color:#64748b;line-height:1.75;">
+        Danh sách này được tổng hợp từ các nguồn công khai và cập nhật định kỳ. 
+        Tuy nhiên, giờ làm việc, số điện thoại và các dịch vụ có thể thay đổi.
+        Chúng tôi khuyến nghị bạn gọi điện xác nhận trước khi đến.
+        Để đề nghị bổ sung hoặc cập nhật thông tin, vui lòng liên hệ với chúng tôi.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="footer-root"></div>
+
+<script>
+document.getElementById('header-root').innerHTML = renderHeader('clinics');
+document.getElementById('footer-root').innerHTML = renderFooter();
+
+const CLINICS = [
+  // ── HÀ NỘI ──
+  {
+    id: 1, province: 'Hà Nội', type: 'public',
+    name: 'Viện Sức Khỏe Tâm Thần Quốc Gia',
+    address: '1 Phương Mai, Đống Đa, Hà Nội (Bệnh viện Bạch Mai)',
+    phone: '024 3869 3731',
+    hours: 'Thứ 2–6: 7:30–16:30 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Trị liệu tâm lý', 'Cấp cứu tâm thần'],
+    mapUrl: 'https://maps.google.com/?q=Viện+Sức+Khỏe+Tâm+Thần+Quốc+Gia+Hà+Nội',
+    note: 'Cơ sở đầu ngành tâm thần học Việt Nam',
+  },
+  {
+    id: 2, province: 'Hà Nội', type: 'public',
+    name: 'Bệnh Viện Tâm Thần Hà Nội',
+    address: 'Ngọc Khánh, Ba Đình, Hà Nội',
+    phone: '024 3835 2804',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Điều trị ngoại trú', 'Phục hồi chức năng'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+Hà+Nội',
+  },
+  {
+    id: 3, province: 'Hà Nội', type: 'private',
+    name: 'Phòng Khám Tâm Lý Trị Liệu Hà Nội',
+    address: '29 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội',
+    phone: '024 3936 1111',
+    hours: 'Thứ 2–7: 8:00–20:00 | CN: 9:00–17:00',
+    services: ['Tâm lý trị liệu', 'Tư vấn stress', 'CBT', 'Liệu pháp gia đình'],
+    mapUrl: 'https://maps.google.com/?q=Phòng+Khám+Tâm+Lý+Trị+Liệu+Hà+Nội',
+  },
+  {
+    id: 4, province: 'Hà Nội', type: 'hospital',
+    name: 'Bệnh Viện Đại Học Y Hà Nội — Khoa Tâm Thần',
+    address: '1 Tôn Thất Tùng, Đống Đa, Hà Nội',
+    phone: '024 3574 4335',
+    hours: 'Thứ 2–6: 7:30–16:30',
+    services: ['Khám tâm thần', 'Tư vấn tâm lý', 'Điều trị lo âu & trầm cảm'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Đại+Học+Y+Hà+Nội',
+  },
+
+  // ── TP.HCM ──
+  {
+    id: 5, province: 'TP.HCM', type: 'public',
+    name: 'Bệnh Viện Tâm Thần TP.HCM',
+    address: '766 Võ Văn Kiệt, Phường 1, Quận 5, TP.HCM',
+    phone: '028 3835 4349',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Điều trị ngoại trú', 'Phục hồi chức năng tâm thần'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+TP+Hồ+Chí+Minh',
+    note: 'Bệnh viện chuyên khoa tâm thần lớn nhất phía Nam',
+  },
+  {
+    id: 6, province: 'TP.HCM', type: 'public',
+    name: 'Khoa Tâm Thần — BV Chợ Rẫy',
+    address: '201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP.HCM',
+    phone: '028 3855 4137',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Cấp cứu tâm thần', 'Điều trị trầm cảm & lo âu'],
+    mapUrl: 'https://maps.google.com/?q=Khoa+Tâm+Thần+Bệnh+Viện+Chợ+Rẫy',
+  },
+  {
+    id: 7, province: 'TP.HCM', type: 'private',
+    name: 'Tâm Lý Trị Liệu Thành Phố — Phòng Khám Ánh Dương',
+    address: '27A Đinh Tiên Hoàng, Phường Đa Kao, Quận 1, TP.HCM',
+    phone: '028 3820 3113',
+    hours: 'Thứ 2–7: 8:00–20:00',
+    services: ['Tâm lý trị liệu cá nhân', 'CBT', 'Tư vấn lo âu & stress', 'Liệu pháp EMDR'],
+    mapUrl: 'https://maps.google.com/?q=Phòng+Khám+Tâm+Lý+Quận+1+TP+HCM',
+  },
+  {
+    id: 8, province: 'TP.HCM', type: 'private',
+    name: 'MindCare Clinic',
+    address: '15 Phan Kế Bính, Phường Đa Kao, Quận 1, TP.HCM',
+    phone: '028 3910 2299',
+    hours: 'Thứ 2–7: 9:00–21:00 | CN: 9:00–18:00',
+    services: ['Tư vấn tâm lý', 'Trị liệu nhóm', 'Khám tâm thần', 'Hỗ trợ trực tuyến'],
+    mapUrl: 'https://maps.google.com/?q=MindCare+Clinic+Quận+1+TP+HCM',
+  },
+  {
+    id: 9, province: 'TP.HCM', type: 'hospital',
+    name: 'Khoa Tâm Thần — BV Đại Học Y Dược TP.HCM',
+    address: '215 Hồng Bàng, Phường 11, Quận 5, TP.HCM',
+    phone: '028 3855 8411',
+    hours: 'Thứ 2–6: 7:00–16:30',
+    services: ['Khám tâm thần', 'Tư vấn tâm lý lâm sàng', 'Nghiên cứu điều trị'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Đại+Học+Y+Dược+TP+HCM',
+  },
+
+  // ── ĐÀ NẴNG ──
+  {
+    id: 10, province: 'Đà Nẵng', type: 'public',
+    name: 'Bệnh Viện Tâm Thần Đà Nẵng',
+    address: '193 Nguyễn Văn Linh, Quận Thanh Khê, Đà Nẵng',
+    phone: '0236 3832 066',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Điều trị ngoại trú', 'Phục hồi chức năng'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+Đà+Nẵng',
+  },
+  {
+    id: 11, province: 'Đà Nẵng', type: 'private',
+    name: 'Phòng Khám Tâm Lý An Tâm',
+    address: '78 Nguyễn Chí Thanh, Quận Hải Châu, Đà Nẵng',
+    phone: '0236 3653 788',
+    hours: 'Thứ 2–7: 8:30–19:00',
+    services: ['Tư vấn tâm lý', 'Trị liệu cá nhân', 'Hỗ trợ stress & lo âu'],
+    mapUrl: 'https://maps.google.com/?q=Phòng+Khám+Tâm+Lý+An+Tâm+Đà+Nẵng',
+  },
+
+  // ── HUẾ ──
+  {
+    id: 12, province: 'Huế', type: 'public',
+    name: 'Khoa Tâm Thần — BV Trung Ương Huế',
+    address: '16 Lê Lợi, Phường Vĩnh Ninh, TP. Huế',
+    phone: '0234 3822 325',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Tư vấn tâm lý', 'Điều trị trầm cảm & lo âu', 'Cấp cứu tâm thần'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Trung+Ương+Huế',
+  },
+
+  // ── CẦN THƠ ──
+  {
+    id: 13, province: 'Cần Thơ', type: 'public',
+    name: 'Bệnh Viện Tâm Thần Cần Thơ',
+    address: 'Đường 3/2, Phường Hưng Lợi, Ninh Kiều, Cần Thơ',
+    phone: '0292 3830 609',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Điều trị ngoại trú'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+Cần+Thơ',
+  },
+
+  // ── HẢI PHÒNG ──
+  {
+    id: 14, province: 'Hải Phòng', type: 'public',
+    name: 'Bệnh Viện Tâm Thần Hải Phòng',
+    address: 'Kiến An, Hải Phòng',
+    phone: '0225 3785 218',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Phục hồi chức năng'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+Hải+Phòng',
+  },
+
+  // ── BÌNH DƯƠNG ──
+  {
+    id: 15, province: 'Bình Dương', type: 'public',
+    name: 'Khoa Tâm Thần — BV Đa Khoa Tỉnh Bình Dương',
+    address: '249 Yersin, Phú Cường, Thủ Dầu Một, Bình Dương',
+    phone: '0274 3822 289',
+    hours: 'Thứ 2–6: 7:00–16:00',
+    services: ['Khám tâm thần', 'Tư vấn tâm lý', 'Điều trị ngoại trú'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Đa+Khoa+Tỉnh+Bình+Dương',
+  },
+
+  // ── ĐỒNG NAI ──
+  {
+    id: 16, province: 'Đồng Nai', type: 'public',
+    name: 'Bệnh Viện Tâm Thần Đồng Nai',
+    address: 'Trảng Bom, Đồng Nai',
+    phone: '0251 3861 440',
+    hours: 'Thứ 2–6: 7:00–16:00 | Cấp cứu: 24/7',
+    services: ['Khám tâm thần', 'Điều trị nội trú', 'Điều trị ngoại trú'],
+    mapUrl: 'https://maps.google.com/?q=Bệnh+Viện+Tâm+Thần+Đồng+Nai',
+  },
+];
+
+function typeLabel(type) {
+  return { public: 'Bệnh viện công', private: 'Phòng khám tư', hospital: 'BV đa khoa', clinic: 'Phòng khám' }[type] || type;
+}
+function typeClass(type) {
+  return { public: 'tag-public', private: 'tag-private', hospital: 'tag-hospital', clinic: 'tag-clinic' }[type] || 'tag-clinic';
+}
+
+function filterClinics() {
+  const province = document.getElementById('province-filter').value;
+  const type = document.getElementById('type-filter').value;
+  const search = document.getElementById('search-input').value.toLowerCase();
+
+  const filtered = CLINICS.filter(c => {
+    if (province && c.province !== province) return false;
+    if (type && c.type !== type) return false;
+    if (search && !c.name.toLowerCase().includes(search) && !c.address.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  document.getElementById('result-count').textContent = `${filtered.length} cơ sở`;
+  const grid = document.getElementById('clinics-grid');
+  const empty = document.getElementById('empty-state');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = filtered.map(c => `
+    <div class="clinic-card">
+      <div>
+        <span class="clinic-type-tag ${typeClass(c.type)}">${typeLabel(c.type)}</span>
+        ${c.note ? `<span class="clinic-type-tag" style="background:#fef3c7;color:#92400e;margin-left:.4rem;">${c.note}</span>` : ''}
+      </div>
+      <div class="clinic-name">${c.name}</div>
+      <div class="clinic-addr">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        ${c.address}
+      </div>
+      <div class="clinic-phone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.7 11.73a19.79 19.79 0 01-3.07-8.67A2 2 0 012.61 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.1a16 16 0 006 6l.86-.86a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.42v1.5z"/></svg>
+        ${c.phone}
+      </div>
+      <div class="clinic-hours">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        ${c.hours}
+      </div>
+      <div class="clinic-services">
+        ${c.services.map(s => `<span class="service-pill">${s}</span>`).join('')}
+      </div>
+      <div class="clinic-cta">
+        <a href="${c.mapUrl}" target="_blank" rel="noopener" class="btn-map">🗺️ Xem bản đồ</a>
+        <a href="tel:${c.phone.replace(/\s/g,'')}" class="btn-call">📞 Gọi ngay</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Auto-detect from last assessment result
+document.addEventListener('DOMContentLoaded', () => {
+  const last = Store.get('ms_last_result');
+  if (last && (last.result.next === 'urgent' || last.result.next === 'emergency')) {
+    document.querySelector('.urgent-banner').style.display = 'flex';
+  }
+  filterClinics();
+  initScrollReveal();
+});
+</script>
+</body>
+</html>

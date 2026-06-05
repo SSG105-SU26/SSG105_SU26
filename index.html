@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindBuddy — Sàng Lọc Sức Khỏe Tâm Thần Lâm Sàng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="shared.js"></script>
+  <style>
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, #0F2744 0%, #0c3461 55%, #0D9488 100%);
+      color: #fff;
+      padding: 5rem 0 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; align-items: center; position: relative; z-index: 1; }
+    @media (min-width: 768px) { .hero-grid { grid-template-columns: 1fr 1fr; } }
+    .hero-tag { display: inline-flex; align-items: center; gap: .5rem; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 99px; padding: .35rem 1rem; font-size: .72rem; font-weight: 600; letter-spacing: .5px; color: #5eead4; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900; line-height: 1.15; letter-spacing: -.5px; margin-bottom: 1.25rem; }
+    .hero h1 span { color: #5eead4; }
+    .hero p { font-size: 1rem; line-height: 1.8; color: #cbd5e1; max-width: 480px; margin-bottom: 2rem; }
+    .hero-btns { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+    .btn-hero-primary { background: linear-gradient(135deg,#0D9488,#0f766e); color: #fff; padding: .85rem 2rem; border-radius: 10px; font-size: .9rem; font-weight: 700; text-decoration: none; transition: all .25s; display: inline-block; }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(13,148,136,.5); }
+    .btn-hero-ghost { background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.2); color: #fff; padding: .85rem 1.75rem; border-radius: 10px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .25s; display: inline-block; }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,.14); }
+    /* HERO CARD */
+    .hero-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 2rem; backdrop-filter: blur(8px); }
+    .hero-card-title { font-size: .75rem; font-weight: 700; letter-spacing: 1px; color: #5eead4; margin-bottom: 1.25rem; }
+    .scale-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: .82rem; color: #e2e8f0; }
+    .scale-item:last-child { border-bottom: none; }
+    .scale-badge { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .scale-item strong { margin-left: auto; font-size: .7rem; color: #94a3b8; }
+
+    /* ── TRUST STRIP ── */
+    .trust-strip { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+    .trust-items { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; align-items: center; }
+    .trust-item { display: flex; align-items: center; gap: .5rem; font-size: .75rem; font-weight: 600; color: #475569; }
+    .trust-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 600px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
+    .step-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.75rem; transition: all .3s; }
+    .step-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(15,39,68,.08); border-color: #CCFBF1; }
+    .step-num { width: 36px; height: 36px; background: linear-gradient(135deg,#0F2744,#0D9488); color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 800; margin-bottom: 1rem; }
+    .step-card h3 { font-size: .92rem; font-weight: 700; color: #0F2744; margin-bottom: .5rem; }
+    .step-card p { font-size: .8rem; line-height: 1.7; color: #64748b; }
+
+    /* ── SCALES SECTION ── */
+    .scales-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 640px) { .scales-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 900px) { .scales-grid { grid-template-columns: repeat(3, 1fr); } }
+    .scale-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: all .3s; }
+    .scale-card:hover { border-color: #0D9488; box-shadow: 0 8px 24px rgba(13,148,136,.1); }
+    .scale-card-tag { display: inline-block; background: #CCFBF1; color: #0D9488; font-size: .65rem; font-weight: 700; letter-spacing: .5px; padding: .25rem .65rem; border-radius: 6px; margin-bottom: .85rem; }
+    .scale-card h3 { font-size: .88rem; font-weight: 700; color: #0F2744; margin-bottom: .4rem; }
+    .scale-card p { font-size: .78rem; line-height: 1.65; color: #64748b; }
+    .scale-ref { font-size: .68rem; color: #94a3b8; margin-top: .75rem; font-style: italic; }
+
+    /* ── CTA SECTION ── */
+    .cta-section { background: linear-gradient(135deg, #0F2744, #0D9488); border-radius: 24px; padding: 3.5rem 2rem; text-align: center; color: #fff; }
+    .cta-section h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 1rem; }
+    .cta-section p { color: #cbd5e1; font-size: .92rem; margin-bottom: 2rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+    /* ── SECTION HEADERS ── */
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-eyebrow { display: inline-block; background: #CCFBF1; color: #0D9488; font-size: .72rem; font-weight: 700; letter-spacing: 1px; padding: .3rem .9rem; border-radius: 99px; margin-bottom: 1rem; }
+    .section-header h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; color: #0F2744; margin-bottom: .75rem; }
+    .section-header p { font-size: .9rem; color: #64748b; max-width: 540px; margin: 0 auto; line-height: 1.75; }
+
+    /* DISCLAIMER */
+    .disclaimer-box { background: #FEF3C7; border: 1.5px solid #FDE68A; border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; gap: 1rem; align-items: flex-start; }
+    .disclaimer-box p { font-size: .78rem; line-height: 1.7; color: #78350F; }
+  </style>
+</head>
+<body>
+
+<div id="header-root"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Dựa trên tiêu chuẩn lâm sàng quốc tế
+        </div>
+        <h1>Hiểu rõ <span>sức khỏe<br>tâm thần</span> của bạn</h1>
+        <p>Thực hiện bộ câu hỏi sàng lọc lâm sàng được kiểm chứng y khoa, nhận kết quả đánh giá mức độ, và tìm chuyên gia phù hợp gần bạn.</p>
+        <div class="hero-btns">
+          <a href="assessment.html" class="btn-hero-primary">Bắt Đầu Sàng Lọc →</a>
+          <a href="#how-it-works" class="btn-hero-ghost">Tìm hiểu thêm</a>
+        </div>
+      </div>
+      <div>
+        <div class="hero-card">
+          <div class="hero-card-title">CÁC THANG ĐO LÂM SÀNG</div>
+          <div class="scale-item">
+            <span class="scale-badge" style="background:#10b981"></span>
+            PSS-10 · Thang đo căng thẳng cảm nhận
+            <strong>10 câu</strong>
+          </div>
+          <div class="scale-item">
+            <span class="scale-badge" style="background:#3b82f6"></span>
+            PHQ-9 · Sàng lọc trầm cảm
+            <strong>9 câu</strong>
+          </div>
+          <div class="scale-item">
+            <span class="scale-badge" style="background:#8b5cf6"></span>
+            GAD-7 · Đánh giá lo âu
+            <strong>7 câu</strong>
+          </div>
+          <div class="scale-item">
+            <span class="scale-badge" style="background:#f59e0b"></span>
+            DASS-21 · Stress, trầm cảm, lo âu
+            <strong>21 câu</strong>
+          </div>
+          <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,.08);">
+            <p style="font-size:.72rem; color:#94a3b8; line-height:1.65;">Tất cả thang đo đều được công nhận và sử dụng rộng rãi trong nghiên cứu y khoa quốc tế.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-items">
+      <div class="trust-item">
+        <div class="trust-icon" style="background:#CCFBF1">🔬</div>
+        Kiểm chứng lâm sàng
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon" style="background:#E0F2FE">🔒</div>
+        Ẩn danh hoàn toàn
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon" style="background:#FEF3C7">⚕️</div>
+        Không thay thế bác sĩ
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon" style="background:#FCE7F3">🆓</div>
+        Miễn phí hoàn toàn
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon" style="background:#F0FDF4">🗺️</div>
+        Hướng dẫn đến phòng khám
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">QUY TRÌNH</div>
+      <h2>3 bước đơn giản</h2>
+      <p>Từ câu hỏi đến kết quả và kết nối với chuyên gia — trong chưa đầy 15 phút.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">01</div>
+        <h3>Chọn bộ câu hỏi</h3>
+        <p>Chọn thang đo phù hợp với mối lo của bạn — stress, trầm cảm, lo âu, hoặc đánh giá toàn diện.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">02</div>
+        <h3>Trả lời trung thực</h3>
+        <p>Trả lời dựa trên cảm nhận trong 2 tuần gần nhất. Không có câu trả lời đúng hay sai.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-num">03</div>
+        <h3>Nhận kết quả & hỗ trợ</h3>
+        <p>Xem mức độ đánh giá, giải thích lâm sàng, và danh sách phòng khám phù hợp gần bạn.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCALES SECTION -->
+<section class="section" style="background:#fff; padding-top:3rem; padding-bottom:3rem;">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">THANG ĐO LÂM SÀNG</div>
+      <h2>Căn cứ y khoa rõ ràng</h2>
+      <p>Mỗi bộ câu hỏi đều được nghiên cứu, kiểm chứng và công bố trong các tạp chí y khoa quốc tế.</p>
+    </div>
+    <div class="scales-grid">
+      <div class="scale-card reveal reveal-delay-1">
+        <div class="scale-card-tag">STRESS</div>
+        <h3>PSS-10</h3>
+        <p>Perceived Stress Scale — Thang đo căng thẳng cảm nhận 10 câu của Cohen, Kamarck & Mermelstein (1983). Tiêu chuẩn vàng đánh giá stress.</p>
+        <div class="scale-ref">Cohen, S. et al. (1983). Journal of Health and Social Behavior.</div>
+      </div>
+      <div class="scale-card reveal reveal-delay-2">
+        <div class="scale-card-tag">TRẦM CẢM</div>
+        <h3>PHQ-9</h3>
+        <p>Patient Health Questionnaire — 9 câu sàng lọc trầm cảm dựa trên tiêu chí DSM-IV. Được WHO khuyến nghị sử dụng trong chăm sóc sức khỏe ban đầu.</p>
+        <div class="scale-ref">Kroenke, K. et al. (2001). Journal of General Internal Medicine.</div>
+      </div>
+      <div class="scale-card reveal reveal-delay-3">
+        <div class="scale-card-tag">LO ÂU</div>
+        <h3>GAD-7</h3>
+        <p>Generalized Anxiety Disorder — 7 câu sàng lọc rối loạn lo âu lan tỏa. Điểm cắt lâm sàng được xác nhận độ nhạy 89%.</p>
+        <div class="scale-ref">Spitzer, R.L. et al. (2006). Archives of Internal Medicine.</div>
+      </div>
+      <div class="scale-card reveal reveal-delay-1">
+        <div class="scale-card-tag">TOÀN DIỆN</div>
+        <h3>DASS-21</h3>
+        <p>Depression Anxiety Stress Scales — 21 câu đánh giá đồng thời ba trạng thái: trầm cảm, lo âu và stress. Phiên bản rút gọn từ DASS-42.</p>
+        <div class="scale-ref">Lovibond, S.H. & Lovibond, P.F. (1995). Psychology Foundation.</div>
+      </div>
+      <div class="scale-card reveal reveal-delay-2">
+        <div class="scale-card-tag">MẤT NGỦ</div>
+        <h3>ISI</h3>
+        <p>Insomnia Severity Index — 7 câu đánh giá mức độ nghiêm trọng của rối loạn giấc ngủ và tác động đến chức năng ban ngày.</p>
+        <div class="scale-ref">Morin, C.M. et al. (2011). Sleep Journal.</div>
+      </div>
+      <div class="scale-card reveal reveal-delay-3" style="background: linear-gradient(135deg,#f0fdfa,#e0f2fe); border-color:#CCFBF1;">
+        <div class="scale-card-tag" style="background:#0F2744;color:#fff;">MỚI</div>
+        <h3>Sàng Lọc Tổng Hợp</h3>
+        <p>Kết hợp các chỉ số từ nhiều thang đo để cho ra bức tranh toàn cảnh về sức khỏe tâm thần của bạn.</p>
+        <div class="scale-ref">Sắp ra mắt trong bản cập nhật tới.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<section class="section-sm">
+  <div class="container">
+    <div class="disclaimer-box reveal">
+      <div style="font-size:1.5rem;flex-shrink:0;">⚠️</div>
+      <div>
+        <p><strong>Lưu ý quan trọng:</strong> Kết quả từ các bộ câu hỏi sàng lọc này chỉ mang tính chất <em>tham khảo và gợi ý</em>. Chúng không thể thay thế chẩn đoán lâm sàng từ bác sĩ tâm thần hoặc chuyên gia tâm lý có chứng chỉ hành nghề. Nếu điểm số của bạn ở mức cao, chúng tôi khuyến khích bạn tham khảo ý kiến chuyên gia càng sớm càng tốt. Trong tình huống khẩn cấp, vui lòng gọi <strong>1900 9095</strong> (miễn phí, 24/7).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-sm">
+  <div class="container">
+    <div class="cta-section reveal">
+      <h2>Bắt đầu hành trình hiểu bản thân</h2>
+      <p>Chỉ mất 10–15 phút. Hoàn toàn ẩn danh. Không cần đăng ký tài khoản.</p>
+      <a href="assessment.html" class="btn-hero-primary" style="font-size:1rem; padding:1rem 2.5rem;">Thực Hiện Sàng Lọc Ngay →</a>
+    </div>
+  </div>
+</section>
+
+<div id="footer-root"></div>
+
+<script>
+  document.getElementById('header-root').innerHTML = renderHeader('home');
+  document.getElementById('footer-root').innerHTML = renderFooter();
+  document.addEventListener('DOMContentLoaded', initScrollReveal);
+</script>
+</body>
+</html>
