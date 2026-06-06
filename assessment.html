@@ -32,6 +32,10 @@
     function initScrollReveal() { console.log("ScrollReveal initialized."); }
   </script>
   <script src="shared.js" onerror="console.warn('Không tìm thấy file shared.js gốc, sử dụng cấu hình dự phòng.')"></script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 
   <style>
     body { background: #FFF8F6; margin: 0; font-family: 'Montserrat', sans-serif; }
@@ -486,7 +490,7 @@ const SCALES = {
       if (score <= 14) return {
         levelKey:'moderate', levelLabel:'VỪA PHẢI',
         title:'Lo âu mức độ vừa phải — Mốc cắt sàng lọc',
-        desc:'Mức lo âu vừa phải, đây là mốc cắt sàng lọc tối ưu để can thiệp chuyên môn. Nên được đánh giá bởi chuyên gia.',
+        desc:'Mức lo âu vừa phải, đây là mốc cắt sàng l��c tối ưu để can thiệp chuyên môn. Nên được đánh giá bởi chuyên gia.',
         recs:['Nên tham khảo bác sĩ hoặc nhà tâm lý học lâm sàng','Tìm hiểu về liệu pháp nhận thức hành vi (CBT) — hiệu quả cao với lo âu','Trao đổi với người thân về những lo lắng của bạn'],
         nextAction:'consult',
       };
