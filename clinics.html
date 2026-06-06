@@ -7,14 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap" rel="stylesheet">
   <script src="shared.js"></script>
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  </script>
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <style>
     /* ========== STYLE RIÊNG CHO TRANG CLINICS ========== */
-    /* (shared.js đã có reset, container, section, reveal, hotline, header, footer) */
-
     .page-hero {
       background: linear-gradient(145deg, #FFE8E6, #FFD9D0);
       padding: 2.8rem 0 3.2rem;
@@ -54,7 +50,6 @@
     .breadcrumb a:hover { color: #FF7B8E; }
     .breadcrumb span { color: #FF7B8E; font-weight: 600; }
 
-    /* URGENT BANNER */
     .urgent-banner {
       background: #FFF4E8;
       border: 2px solid #FFE0B5;
@@ -70,7 +65,6 @@
     .urgent-banner p { font-size: 0.82rem; line-height: 1.7; color: #A57348; }
     .urgent-banner strong { color: #C7434A; }
 
-    /* FILTER ROW */
     .filter-row {
       display: flex;
       flex-wrap: wrap;
@@ -109,7 +103,6 @@
       white-space: nowrap;
     }
 
-    /* CLINICS GRID */
     .clinics-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -143,7 +136,6 @@
     .tag-public { background: #DBEAFE; color: #1D4ED8; }
     .tag-private { background: #F3E8FF; color: #7C3AED; }
     .tag-hospital { background: #FCE7F3; color: #BE185D; }
-    .tag-clinic { background: #CCFBF1; color: #0D9488; }
     .clinic-name { font-size: 0.95rem; font-weight: 800; color: #3D2A2A; line-height: 1.35; }
     .clinic-addr, .clinic-phone, .clinic-hours {
       display: flex;
@@ -188,7 +180,6 @@
     }
     .btn-call:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255,123,142,0.3); }
 
-    /* EMPTY STATE */
     .empty-state {
       text-align: center;
       padding: 3rem 2rem;
@@ -199,7 +190,6 @@
     .empty-state h3 { font-size: 1rem; font-weight: 700; color: #8E7A7A; margin-bottom: 0.5rem; }
     .empty-state p { font-size: 0.8rem; color: #B39A9A; }
 
-    /* INFO NOTE */
     .info-note {
       background: #F0FDFA;
       border: 1.5px solid #CCFBF1;
@@ -217,7 +207,7 @@
 
 <div class="page-hero">
   <div class="container">
-    <div class="breadcrumb"><a href="index.html">Trang Chủ</a> <span>›</span> <span style="color:#FF7B8E; font-weight:600;">Tìm Phòng Khám</span></div>
+    <div class="breadcrumb"><a href="index.html">Trang Chủ</a> <span>›</span> <span>Tìm Phòng Khám</span></div>
     <h1>Tìm Phòng Khám & Chuyên Gia</h1>
     <p>Danh sách các cơ sở khám chữa bệnh tâm thần và tâm lý lâm sàng trên toàn quốc. Chọn tỉnh/thành gần bạn để bắt đầu.</p>
   </div>
@@ -225,13 +215,8 @@
 
 <div class="section">
   <div class="container">
-    <!-- EMERGENCY BOX -->
-    <div class="urgent-banner reveal">
-      <span style="font-size:1.6rem; flex-shrink:0;">🆘</span>
-      <p><strong>Cần hỗ trợ khẩn cấp?</strong> Gọi ngay <strong>1900 9095</strong> — đường dây hỗ trợ sức khỏe tâm thần miễn phí của Bộ Y tế, 24/7. Hoặc đến phòng cấp cứu của bệnh viện gần nhất.</p>
-    </div>
+    <div class="urgent-banner reveal"><span style="font-size:1.6rem;flex-shrink:0;">🆘</span><p><strong>Cần hỗ trợ khẩn cấp?</strong> Gọi ngay <strong>1900 9095</strong> — đường dây hỗ trợ sức khỏe tâm thần miễn phí của Bộ Y tế, 24/7. Hoặc đến phòng cấp cứu của bệnh viện gần nhất.</p></div>
 
-    <!-- FILTER ROW -->
     <div class="filter-row reveal reveal-delay-1">
       <select class="filter-select" id="province-filter" onchange="filterClinics()">
         <option value="">Tất cả tỉnh/thành</option>
@@ -254,19 +239,10 @@
       <div class="result-count" id="result-count">— cơ sở</div>
     </div>
 
-    <!-- CLINICS GRID -->
     <div class="clinics-grid" id="clinics-grid"></div>
-    <div class="empty-state" id="empty-state" style="display:none;">
-      <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
-      <h3>Không tìm thấy kết quả</h3>
-      <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
-    </div>
+    <div class="empty-state" id="empty-state" style="display:none;"><div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div><h3>Không tìm thấy kết quả</h3><p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p></div>
 
-    <!-- INFO NOTE -->
-    <div class="info-note reveal reveal-delay-2">
-      <h3>📌 Lưu ý về thông tin phòng khám</h3>
-      <p>Danh sách này được tổng hợp từ các nguồn công khai và cập nhật định kỳ. Tuy nhiên, giờ làm việc, số điện thoại và các dịch vụ có thể thay đổi. Chúng tôi khuyến nghị bạn gọi điện xác nhận trước khi đến. Để đề nghị bổ sung hoặc cập nhật thông tin, vui lòng liên hệ với chúng tôi.</p>
-    </div>
+    <div class="info-note reveal reveal-delay-2"><h3>📌 Lưu ý về thông tin phòng khám</h3><p>Danh sách này được tổng hợp từ các nguồn công khai và cập nhật định kỳ. Tuy nhiên, giờ làm việc, số điện thoại và các dịch vụ có thể thay đổi. Chúng tôi khuyến nghị bạn gọi điện xác nhận trước khi đến. Để đề nghị bổ sung hoặc cập nhật thông tin, vui lòng liên hệ với chúng tôi.</p></div>
   </div>
 </div>
 
@@ -311,22 +287,9 @@ function filterClinics() {
   document.getElementById('result-count').textContent = `${filtered.length} cơ sở`;
   const grid = document.getElementById('clinics-grid');
   const empty = document.getElementById('empty-state');
-  if (filtered.length === 0) {
-    grid.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
+  if (filtered.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  grid.innerHTML = filtered.map(c => `
-    <div class="clinic-card reveal">
-      <div><span class="clinic-type-tag ${typeClass(c.type)}">${typeLabel(c.type)}</span>${c.note ? `<span class="clinic-type-tag" style="background:#FEF3C7;color:#92400E;margin-left:.4rem;">${c.note}</span>` : ''}</div>
-      <div class="clinic-name">${c.name}</div>
-      <div class="clinic-addr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${c.address}</div>
-      <div class="clinic-phone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.7 11.73a19.79 19.79 0 01-3.07-8.67A2 2 0 012.61 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.1a16 16 0 006 6l.86-.86a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.42v1.5z"/></svg>${c.phone}</div>
-      <div class="clinic-hours"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${c.hours}</div>
-      <div class="clinic-services">${c.services.map(s=>`<span class="service-pill">${s}</span>`).join('')}</div>
-      <div class="clinic-cta"><a href="${c.mapUrl}" target="_blank" class="btn-map">🗺️ Xem bản đồ</a><a href="tel:${c.phone.replace(/\s/g,'')}" class="btn-call">📞 Gọi ngay</a></div>
-    </div>`).join('');
+  grid.innerHTML = filtered.map(c => `<div class="clinic-card reveal"><div><span class="clinic-type-tag ${typeClass(c.type)}">${typeLabel(c.type)}</span>${c.note ? `<span class="clinic-type-tag" style="background:#FEF3C7;color:#92400E;margin-left:.4rem;">${c.note}</span>` : ''}</div><div class="clinic-name">${c.name}</div><div class="clinic-addr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${c.address}</div><div class="clinic-phone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.7 11.73a19.79 19.79 0 01-3.07-8.67A2 2 0 012.61 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.1a16 16 0 006 6l.86-.86a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.42v1.5z"/></svg>${c.phone}</div><div class="clinic-hours"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${c.hours}</div><div class="clinic-services">${c.services.map(s=>`<span class="service-pill">${s}</span>`).join('')}</div><div class="clinic-cta"><a href="${c.mapUrl}" target="_blank" class="btn-map">🗺️ Xem bản đồ</a><a href="tel:${c.phone.replace(/\s/g,'')}" class="btn-call">📞 Gọi ngay</a></div></div>`).join('');
   initScrollReveal();
 }
 
@@ -338,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   filterClinics();
   initScrollReveal();
+  setTimeout(() => renderRatingWidget('clinics'), 8000);
 });
 </script>
 </body>

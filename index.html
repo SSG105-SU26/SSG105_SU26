@@ -6,274 +6,170 @@
   <title>MindBuddy — Người Bạn Đồng Hành Sức Khỏe Tinh Thần</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap" rel="stylesheet">
   <script src="shared.js"></script>
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  </script>
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <style>
-    .section-header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
+    /* ========== STYLE RIÊNG CHO TRANG CHỦ ========== */
+    .section-header { text-align: center; margin-bottom: 2.5rem; }
     .section-eyebrow {
-      display: inline-block;
-      background: #FFEDEA;
-      color: #FF7B8E;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      padding: 0.25rem 0.8rem;
-      border-radius: 30px;
-      margin-bottom: 0.6rem;
+      display: inline-block; background: #FFEDEA; color: #FF7B8E;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 1px;
+      padding: 0.25rem 0.8rem; border-radius: 30px; margin-bottom: 0.6rem;
     }
     .section-header h2 {
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      font-weight: 800;
-      font-family: 'Playfair Display', serif;
-      color: #3D2A2A;
-      margin-bottom: 0.5rem;
+      font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800;
+      font-family: 'Playfair Display', serif; color: #3D2A2A; margin-bottom: 0.5rem;
     }
     .section-header p {
-      font-size: 0.82rem;
-      color: #7A6464;
-      max-width: 500px;
-      margin: 0 auto;
-      line-height: 1.65;
+      font-size: 0.82rem; color: #7A6464; max-width: 500px;
+      margin: 0 auto; line-height: 1.65;
     }
-    /* ========== STYLE PAGE ========== */
-    /* Hero section */
+
     .hero {
       background: linear-gradient(145deg, #FFE8E6, #FFD9D0);
-      padding: 4rem 0 5rem;
-      position: relative;
-      overflow: hidden;
+      padding: 4rem 0 5rem; position: relative; overflow: hidden;
     }
     .hero::before {
-      content: "🌸";
-      font-size: 200px;
-      position: absolute;
-      bottom: -30px;
-      right: -30px;
-      opacity: 0.1;
-      pointer-events: none;
+      content: "🌸"; font-size: 200px; position: absolute;
+      bottom: -30px; right: -30px; opacity: 0.1; pointer-events: none;
     }
     .hero-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
-      align-items: center;
-      position: relative;
-      z-index: 2;
+      display: grid; grid-template-columns: 1fr; gap: 2.5rem;
+      align-items: center; position: relative; z-index: 2;
     }
-    @media (min-width: 768px) {
-      .hero-grid { grid-template-columns: 1fr 1fr; }
-    }
+    @media (min-width: 768px) { .hero-grid { grid-template-columns: 1fr 1fr; } }
     .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(4px);
-      border-radius: 80px;
-      padding: 0.35rem 1rem;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #FF5A70;
-      margin-bottom: 1rem;
-      border: 1px solid rgba(255, 123, 142, 0.3);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+      border-radius: 80px; padding: 0.35rem 1rem; font-size: 0.7rem;
+      font-weight: 700; color: #FF5A70; margin-bottom: 1rem;
+      border: 1px solid rgba(255,123,142,0.3);
     }
     .hero h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 800;
-      font-family: 'Playfair Display', serif;
-      color: #3D2A2A;
-      line-height: 1.2;
-      margin-bottom: 1rem;
+      font-size: clamp(2rem, 5vw, 3rem); font-weight: 800;
+      font-family: 'Playfair Display', serif; color: #3D2A2A;
+      line-height: 1.2; margin-bottom: 1rem;
     }
     .hero h1 span {
       background: linear-gradient(135deg, #FF7B8E, #FF5A70);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
     .hero p {
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: #6A5555;
-      max-width: 480px;
-      margin-bottom: 1.8rem;
+      font-size: 0.9rem; line-height: 1.7; color: #6A5555;
+      max-width: 480px; margin-bottom: 1.8rem;
     }
     .hero-btns { display: flex; flex-wrap: wrap; gap: 0.8rem; }
     .btn-hero-primary {
-      background: linear-gradient(135deg, #FF7B8E, #FF5A70);
-      color: white;
-      padding: 0.75rem 1.8rem;
-      border-radius: 40px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all 0.25s;
-      box-shadow: 0 6px 14px rgba(255, 123, 142, 0.3);
-      display: inline-block;
+      background: linear-gradient(135deg, #FF7B8E, #FF5A70); color: white;
+      padding: 0.75rem 1.8rem; border-radius: 40px; font-size: 0.85rem;
+      font-weight: 700; text-decoration: none; transition: all 0.25s;
+      box-shadow: 0 6px 14px rgba(255,123,142,0.3); display: inline-block;
     }
-    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(255, 123, 142, 0.4); }
+    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(255,123,142,0.4); }
     .btn-hero-ghost {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(4px);
-      border: 1.5px solid #FFB7B2;
-      color: #FF5A70;
-      padding: 0.75rem 1.6rem;
-      border-radius: 40px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+      border: 1.5px solid #FFB7B2; color: #FF5A70;
+      padding: 0.75rem 1.6rem; border-radius: 40px; font-size: 0.85rem;
+      font-weight: 600; text-decoration: none;
     }
     .btn-hero-ghost:hover { background: white; transform: translateY(-2px); }
     .hero-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      border-radius: 32px;
-      padding: 1.8rem;
-      border: 1.5px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.05);
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+      border-radius: 32px; padding: 1.8rem;
+      border: 1.5px solid rgba(255,255,255,0.6); box-shadow: 0 16px 32px rgba(0,0,0,0.05);
     }
     .hero-card-title { font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; color: #FF7B8E; margin-bottom: 1rem; }
     .scale-item {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.7rem 0;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      font-size: 0.8rem;
-      color: #4A3B3B;
+      display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.8rem; color: #4A3B3B;
     }
     .scale-badge { width: 10px; height: 10px; border-radius: 20px; }
     .scale-item strong { margin-left: auto; font-size: 0.7rem; color: #FF8A9C; }
-    /* Trust strip */
+
     .trust-strip { background: white; border-bottom: 1px solid #FFE0D6; padding: 1rem 0; }
     .trust-items { display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: center; align-items: center; }
     .trust-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #886C6C;
-      background: #FFF8F6;
-      padding: 0.3rem 0.9rem;
-      border-radius: 60px;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem;
+      font-weight: 600; color: #886C6C; background: #FFF8F6;
+      padding: 0.3rem 0.9rem; border-radius: 60px; transition: all 0.2s;
     }
     .trust-item:hover { transform: translateY(-2px); background: #FFE8E6; }
     .trust-icon { width: 28px; height: 28px; background: #FFEDEA; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
-    /* Steps */
+
     .steps-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
     @media (min-width: 600px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
     .step-card {
-      background: white;
-      border-radius: 28px;
-      padding: 1.8rem;
-      border: 1px solid #FFE0D6;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      background: white; border-radius: 28px; padding: 1.8rem;
+      border: 1px solid #FFE0D6; transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     }
-    .step-card:hover { transform: translateY(-6px); box-shadow: 0 18px 36px rgba(255, 123, 142, 0.12); border-color: #FFB7B2; }
+    .step-card:hover { transform: translateY(-6px); box-shadow: 0 18px 36px rgba(255,123,142,0.12); border-color: #FFB7B2; }
     .step-num {
-      width: 42px;
-      height: 42px;
-      background: linear-gradient(135deg, #FFB7B2, #FF7B8E);
-      color: white;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      font-weight: 800;
-      margin-bottom: 1.2rem;
+      width: 42px; height: 42px; background: linear-gradient(135deg, #FFB7B2, #FF7B8E);
+      color: white; border-radius: 20px; display: flex; align-items: center;
+      justify-content: center; font-size: 0.9rem; font-weight: 800; margin-bottom: 1.2rem;
+      font-family: 'Montserrat', sans-serif;
     }
     .step-card h3 { font-size: 0.9rem; font-weight: 800; color: #3D2A2A; margin-bottom: 0.5rem; }
     .step-card p { font-size: 0.78rem; line-height: 1.7; color: #7A6464; }
-    /* Scales cards */
+
     .scales-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
     @media (min-width: 640px) { .scales-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 900px) { .scales-grid { grid-template-columns: repeat(3, 1fr); } }
     .scale-card {
-      background: white;
-      border-radius: 24px;
-      padding: 1.5rem;
-      border: 1px solid #FFE0D6;
-      transition: all 0.3s;
+      background: white; border-radius: 24px; padding: 1.5rem;
+      border: 1px solid #FFE0D6; transition: all 0.3s;
     }
-    .scale-card:hover { border-color: #FFB7B2; transform: translateY(-4px); box-shadow: 0 12px 28px rgba(255, 123, 142, 0.1); }
+    .scale-card:hover { border-color: #FFB7B2; transform: translateY(-4px); box-shadow: 0 12px 28px rgba(255,123,142,0.1); }
     .scale-card-tag {
-      display: inline-block;
-      background: #FFEDEA;
-      color: #FF7B8E;
-      font-size: 0.65rem;
-      font-weight: 800;
-      padding: 0.25rem 0.8rem;
-      border-radius: 30px;
-      margin-bottom: 0.8rem;
+      display: inline-block; background: #FFEDEA; color: #FF7B8E;
+      font-size: 0.65rem; font-weight: 800; padding: 0.25rem 0.8rem;
+      border-radius: 30px; margin-bottom: 0.8rem;
     }
     .scale-card h3 { font-size: 0.9rem; font-weight: 800; color: #3D2A2A; margin-bottom: 0.3rem; }
     .scale-card p { font-size: 0.75rem; line-height: 1.65; color: #7A6464; }
     .scale-ref { font-size: 0.65rem; color: #B39A9A; margin-top: 0.7rem; font-style: italic; }
-    /* Disclaimer box */
+
     .disclaimer-box {
-      background: #FFF4E8;
-      border: 1.5px solid #FFE0B5;
-      border-radius: 28px;
-      padding: 1.2rem 1.5rem;
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
+      background: #FFF4E8; border: 1.5px solid #FFE0B5; border-radius: 28px;
+      padding: 1.2rem 1.5rem; display: flex; gap: 1rem; align-items: flex-start;
     }
     .disclaimer-box p { font-size: 0.75rem; line-height: 1.7; color: #A57348; }
-    /* CTA section */
+
     .cta-section {
       background: linear-gradient(135deg, #FFEDEA, #FFE0D6);
-      border-radius: 36px;
-      padding: 3rem 2rem;
-      text-align: center;
+      border-radius: 36px; padding: 3rem 2rem; text-align: center;
     }
     .cta-section h2 {
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      font-weight: 800;
-      font-family: 'Playfair Display', serif;
-      color: #3D2A2A;
-      margin-bottom: 0.8rem;
+      font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800;
+      font-family: 'Playfair Display', serif; color: #3D2A2A; margin-bottom: 0.8rem;
     }
-    .cta-section p { color: #6A5555; font-size: 0.85rem; margin-bottom: 1.8rem; max-width: 460px; margin-left: auto; margin-right: auto; }
-    /* Animation */
+    .cta-section p {
+      color: #6A5555; font-size: 0.85rem; margin-bottom: 1.8rem;
+      max-width: 460px; margin-left: auto; margin-right: auto;
+    }
+
+    h1, h2, h3, .step-num, .scale-card h3, .hero h1 span, .cta-section h2 {
+      font-variant-numeric: lining-nums;
+      font-feature-settings: "lnum" on, "onum" off;
+    }
     @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     .floating { animation: float 3s ease-in-out infinite; }
-    h1, h2, h3, .step-num, .scale-card h3, .hero h1 span, .cta-section h2 {
-    font-variant-numeric: lining-nums;
-    font-feature-settings: "lnum" on, "onum" off;
-    }
-    .step-num, .steps-grid .step-card .step-num {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-    }
   </style>
 </head>
 <body>
+
 <div id="header-root"></div>
-<!-- HERO -->
+
+<!-- ========== HERO ========== -->
 <section class="hero">
   <div class="container">
     <div class="hero-grid">
       <div>
-        <div class="hero-tag">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Dựa trên tiêu chuẩn lâm sàng quốc tế
-        </div>
+        <div class="hero-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Dựa trên tiêu chuẩn lâm sàng quốc tế</div>
         <h1>Hiểu rõ <span>sức khỏe<br>tâm thần</span> của bạn</h1>
         <p>Thực hiện bộ câu hỏi sàng lọc lâm sàng được kiểm chứng y khoa, nhận kết quả đánh giá mức độ, và tìm chuyên gia phù hợp gần bạn.</p>
-        <div class="hero-btns">
-          <a href="assessment.html" class="btn-hero-primary">Bắt Đầu Sàng Lọc →</a>
-          <a href="#how-it-works" class="btn-hero-ghost">Tìm hiểu thêm</a>
-        </div>
+        <div class="hero-btns"><a href="assessment.html" class="btn-hero-primary">Bắt Đầu Sàng Lọc →</a><a href="#how-it-works" class="btn-hero-ghost">Tìm hiểu thêm</a></div>
       </div>
       <div>
         <div class="hero-card">
@@ -283,15 +179,14 @@
           <div class="scale-item"><span class="scale-badge" style="background:#8b5cf6"></span>GAD-7 · Đánh giá lo âu<strong>7 câu</strong></div>
           <div class="scale-item"><span class="scale-badge" style="background:#f59e0b"></span>DASS-21 · Stress, trầm cảm, lo âu<strong>21 câu</strong></div>
           <div class="scale-item"><span class="scale-badge" style="background:#ef4444"></span>ISI · Đánh giá rối loạn giấc ngủ<strong>7 câu</strong></div>
-          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(0,0,0,0.05);">
-            <p style="font-size:0.7rem; color:#A28B8B;">Tất cả thang đo đều được công nhận và sử dụng rộng rãi trong nghiên cứu y khoa quốc tế.</p>
-          </div>
+          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid rgba(0,0,0,0.05);"><p style="font-size:0.7rem; color:#A28B8B;">Tất cả thang đo đều được công nhận và sử dụng rộng rãi trong nghiên cứu y khoa quốc tế.</p></div>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!-- TRUST STRIP -->
+
+<!-- ========== TRUST STRIP ========== -->
 <div class="trust-strip">
   <div class="container">
     <div class="trust-items">
@@ -303,7 +198,8 @@
     </div>
   </div>
 </div>
-<!-- HOW IT WORKS -->
+
+<!-- ========== HOW IT WORKS ========== -->
 <section class="section" id="how-it-works">
   <div class="container">
     <div class="section-header reveal">
@@ -318,7 +214,8 @@
     </div>
   </div>
 </section>
-<!-- SCALES SECTION -->
+
+<!-- ========== SCALES SECTION ========== -->
 <section class="section" style="background:#fff; padding-top:2rem; padding-bottom:2rem;">
   <div class="container">
     <div class="section-header reveal">
@@ -336,6 +233,7 @@
     </div>
   </div>
 </section>
+
 <!-- ========== DISCLAIMER ========== -->
 <section class="section-sm">
   <div class="container">
@@ -345,7 +243,8 @@
     </div>
   </div>
 </section>
-<!-- CTA -->
+
+<!-- ========== CTA ========== -->
 <section class="section-sm">
   <div class="container">
     <div class="cta-section reveal">
@@ -355,11 +254,53 @@
     </div>
   </div>
 </section>
+
 <div id="footer-root"></div>
+
 <script>
   document.getElementById('header-root').innerHTML = renderHeader('home');
   document.getElementById('footer-root').innerHTML = renderFooter();
-  document.addEventListener('DOMContentLoaded', initScrollReveal);
+  document.addEventListener('DOMContentLoaded', () => {
+    initScrollReveal();
+    const last = Store.get('mb_survey_shown');
+    const threeHours = 3 * 60 * 60 * 1000;
+    if (!last || (Date.now() - last > threeHours)) showSurveyPopup();
+  });
+
+  function showSurveyPopup() {
+    if (document.getElementById('survey-popup')) return;
+    Store.set('mb_survey_shown', Date.now());
+    const popup = document.createElement('div');
+    popup.id = 'survey-popup';
+    popup.innerHTML = `<style>
+        #survey-popup{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(61,42,42,.4);backdrop-filter:blur(5px);animation:spFade .3s ease}
+        @keyframes spFade{from{opacity:0}to{opacity:1}}
+        #survey-popup .sp-box{background:#fff;border-radius:36px;padding:2.25rem 2rem 1.75rem;max-width:400px;width:92%;text-align:center;position:relative;box-shadow:0 28px 64px rgba(255,123,142,.2);border:1.5px solid #FFE0D6;animation:spUp .35s cubic-bezier(.34,1.56,.64,1) both}
+        @keyframes spUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+        #survey-popup .sp-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#C8AAAA;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:8px}
+        #survey-popup .sp-close:hover{background:#FFE8E6;color:#FF7B8E}
+        #survey-popup .sp-emoji{font-size:2.8rem;display:block;margin-bottom:.6rem}
+        #survey-popup .sp-title{font-size:1.15rem;font-weight:800;color:#3D2A2A;font-family:'Playfair Display',serif;margin-bottom:.5rem}
+        #survey-popup .sp-desc{font-size:.8rem;color:#7A6464;line-height:1.7;margin-bottom:1.5rem}
+        #survey-popup .sp-btn{display:inline-block;background:linear-gradient(135deg,#FF7B8E,#FF5A70);color:#fff;padding:.75rem 2rem;border-radius:40px;font-size:.85rem;font-weight:700;text-decoration:none;box-shadow:0 6px 16px rgba(255,90,112,.28);font-family:'Montserrat',sans-serif}
+        #survey-popup .sp-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(255,90,112,.38)}
+        #survey-popup .sp-skip{display:block;margin-top:.9rem;background:none;border:none;color:#B39A9A;font-size:.72rem;cursor:pointer;text-decoration:underline}
+        #survey-popup .sp-skip:hover{color:#FF7B8E}
+      </style>
+      <div class="sp-box">
+        <button class="sp-close" onclick="closeSurvey()">✕</button>
+        <span class="sp-emoji">📋</span>
+        <div class="sp-title">Bạn có 2 phút không?</div>
+        <div class="sp-desc">Chia sẻ trải nghiệm của bạn giúp chúng tôi cải thiện MindBuddy tốt hơn cho cộng đồng. Khảo sát chỉ mất khoảng <strong>2 phút</strong> và hoàn toàn ẩn danh 💛</div>
+        <a href="https://forms.gle/52ZRRuGtvYf5E4t47" target="_blank" class="sp-btn" onclick="closeSurvey()">Làm Khảo Sát Ngay →</a>
+        <button class="sp-skip" onclick="closeSurvey()">Để sau, tôi đang bận</button>
+      </div>`;
+    document.body.appendChild(popup);
+  }
+  function closeSurvey() {
+    const p = document.getElementById('survey-popup');
+    if (p) { p.style.opacity='0'; p.style.transition='opacity .2s'; setTimeout(()=>p.remove(),200); }
+  }
 </script>
 </body>
 </html>
