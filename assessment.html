@@ -1,969 +1,2260 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sàng Lọc Lâm Sàng — MindBuddy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap" rel="stylesheet">
-  
-  <script>
-    // ── FALLBACK ────────────────────────────────────────────────
-    if (typeof renderHeader !== 'function') {
-      window.renderHeader = function(page) { 
-        return `<div style="padding: 1rem; background: #fff; border-bottom: 1px solid #FFE0D6; text-align:center; font-weight:700; color:#3D2A2A;">🧩 MindBuddy Navigation Bar (${page})</div>`; 
-      };
-    }
-    if (typeof renderFooter !== 'function') {
-      window.renderFooter = function() { 
-        return `<div style="padding: 1.5rem; background: #3D2A2A; color: #fff; text-align: center; font-size: 0.8rem;">© 2026 MindBuddy. Thang đo chuẩn hóa lâm sàng.</div>`; 
-      };
-    }
-    if (typeof Store === 'undefined') {
-      window.Store = {
-        set: function(key, value) {
-          try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) { console.error("Store Error:", e); }
-        },
-        get: function(key) {
-          try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; }
-        }
-      };
-    }
-    function initScrollReveal() { console.log("ScrollReveal initialized."); }
-  </script>
-  <script src="shared.js" onerror="console.warn('Không tìm thấy file shared.js gốc, sử dụng cấu hình dự phòng.')"></script>
-  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
-  <script defer src="/_vercel/insights/script.js"></script>
-  
-  <style>
-    body { background: #FFF8F6; margin: 0; font-family: 'Montserrat', sans-serif; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-    /* PAGE HERO */
-    .page-hero { background: linear-gradient(145deg,#FFE8E6,#FFD9D0); padding:2.8rem 0 3.2rem; position:relative; overflow:hidden; }
-    .page-hero::before { content:"🌸"; font-size:160px; position:absolute; bottom:-20px; right:-20px; opacity:.12; pointer-events:none; }
-    .page-hero h1 { font-size:clamp(1.6rem,4vw,2.4rem); font-weight:800; font-family:'Playfair Display',serif; color:#3D2A2A; margin: 0 0 .5rem 0; }
-    .page-hero p { font-size:.9rem; color:#6A5555; line-height:1.75; max-width:560px; margin: 0; }
-    .breadcrumb { display:flex; align-items:center; gap:.5rem; margin-bottom:.8rem; font-size:.75rem; }
-    .breadcrumb a { color:#A28B8B; text-decoration:none; transition:color .2s; }
-    .breadcrumb a:hover { color:#FF7B8E; }
-    .breadcrumb span { color:#FF7B8E; font-weight:600; }
-    
-    /* SCALE SELECTOR */
-    #scale-selector { display:grid; grid-template-columns:1fr; gap:1rem; margin-bottom:2rem; }
-    @media(min-width:640px){ #scale-selector{grid-template-columns:repeat(2,1fr);} }
-    @media(min-width:900px){ #scale-selector{grid-template-columns:repeat(5,1fr);} }
-    
-    .scale-tile { background:#fff; border-radius:28px; padding:1.5rem 1rem; text-align:center; cursor:pointer; border:2px solid #FFE0D6; transition:all .25s ease; box-shadow:0 4px 10px rgba(0,0,0,.02); }
-    .scale-tile:hover { transform:translateY(-5px); border-color:#FFB7B2; box-shadow:0 12px 28px rgba(255,123,142,.14); }
-    .scale-tile.selected { border-color:#FF7B8E; background:linear-gradient(145deg,#FFF5F3,#FFE8E6); box-shadow:0 0 0 4px rgba(255,123,142,.12); }
-    .scale-tile-icon { font-size:2rem; margin-bottom:.5rem; display:block; }
-    .scale-tile-name { font-weight:800; font-size:1.05rem; color:#3D2A2A; display:block; letter-spacing:-.3px; }
-    .scale-tile-full { font-size:.65rem; color:#A28B8B; display:block; margin-top:.25rem; line-height:1.4; }
-    .scale-tile-count { display:inline-block; margin-top:.75rem; background:#FFE8E6; padding:.2rem .75rem; border-radius:99px; font-size:.68rem; font-weight:700; color:#FF7B8E; }
-    .scale-tile.selected .scale-tile-count { background:#FF7B8E; color:#fff; }
-    
-    #start-row { display:none; margin-top:.5rem; }
-    .btn-start { background:linear-gradient(135deg,#FF7B8E,#FF5A70); color:#fff; padding:.85rem 2.5rem; border-radius:99px; font-size:.9rem; font-weight:700; border:none; cursor:pointer; transition:all .25s; box-shadow:0 4px 14px rgba(255,123,142,.3); }
-    .btn-start:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,123,142,.4); }
-    
-    /* ASSESSMENT BOX */
-    #assessment-box { display:none; }
-    #assessment-box.visible { display:block; }
-    .assessment-header { background:#fff; border:1.5px solid #FFE0D6; border-radius:20px; padding:1.5rem; margin-bottom:1.5rem; margin-top: 1.5rem; }
-    .assessment-header h2 { font-size:1.2rem; font-weight:800; color:#3D2A2A; font-family:'Playfair Display',serif; margin: 0; }
-    .assessment-header p { font-size:.78rem; color:#8E7A7A; line-height:1.65; margin-top:.5rem; }
-    
-    .progress-row { display:flex; align-items:center; gap:1rem; margin-top:1rem; }
-    .progress-bar-bg { flex:1; height:8px; background:#FFE8E6; border-radius:99px; overflow:hidden; }
-    .progress-bar-fill { height:100%; width: 0%; background:linear-gradient(90deg,#FF7B8E,#FFB7B2); border-radius:99px; transition:width .4s ease; }
-    .progress-text { font-size:.75rem; font-weight:700; color:#FF7B8E; white-space:nowrap; }
-    
-    /* QUESTION BLOCKS */
-    .question-block { background:#fff; border:1.5px solid #FFE0D6; border-radius:20px; padding:1.75rem; margin-bottom:1rem; transition:border-color .3s; }
-    .question-block:hover { border-color:#FFB7B2; }
-    .q-number { font-size:.65rem; font-weight:700; letter-spacing:.8px; color:#FF7B8E; margin-bottom:.6rem; text-transform:uppercase; }
-    .q-text { font-size:.9rem; font-weight:600; color:#3D2A2A; line-height:1.65; margin-bottom:1.25rem; }
-    .q-subscale { display:inline-block; background:#FFF0EB; color:#C7434A; font-size:.62rem; font-weight:700; padding:.15rem .55rem; border-radius:6px; margin-left:.5rem; vertical-align:middle; }
-    
-    /* OPTIONS */
-    .options-wrap { display:flex; flex-wrap:wrap; gap:.6rem; }
-    .opt-btn { border:2px solid #FFE0D6; background:#FFF8F6; border-radius:14px; padding:.6rem 1rem; font-size:.78rem; font-weight:500; color:#5D4A4A; cursor:pointer; transition:all .2s; font-family:inherit; }
-    .opt-btn:hover { border-color:#FF7B8E; background:#FFF0EB; color:#FF5A70; }
-    .opt-btn.selected { border-color:#FF7B8E; background:linear-gradient(135deg,#FFE8E6,#FFD9D0); color:#C7434A; font-weight:700; }
-    
-    .options-scale { display:flex; gap:.4rem; flex-wrap:wrap; width: 100%; }
-    .opt-scale-btn { flex:1; min-width:80px; text-align:center; border:2px solid #FFE0D6; background:#FFF8F6; border-radius:14px; padding:.7rem .4rem; font-size:.72rem; font-weight:500; color:#5D4A4A; cursor:pointer; transition:all .2s; font-family:inherit; line-height:1.3; }
-    .opt-scale-btn:hover { border-color:#FF7B8E; background:#FFF0EB; color:#FF5A70; }
-    .opt-scale-btn.selected { border-color:#FF7B8E; background:linear-gradient(135deg,#FFE8E6,#FFD9D0); color:#C7434A; font-weight:700; }
-    
-    /* ACTION ROW */
-    .action-row { display:flex; justify-content:flex-end; gap:.75rem; margin-top:2rem; margin-bottom: 2rem; }
-    .btn-back { background:#FFF0EB; color:#8E7A7A; padding:.8rem 1.5rem; border-radius: 99px; font-size:.82rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; font-family:inherit; }
-    .btn-back:hover { background:#FFE0D6; color:#5D4A4A; }
-    .btn-submit { background:linear-gradient(135deg,#FF7B8E,#FF5A70); color:#fff; padding:.8rem 2rem; border-radius:99px; font-size:.85rem; font-weight:700; border:none; cursor:pointer; transition:all .25s; font-family:inherit; box-shadow:0 4px 12px rgba(255,90,112,.25); }
-    .btn-submit:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 20px rgba(255,90,112,.35); }
-    .btn-submit:disabled { opacity:.4; cursor:not-allowed; }
-    
-    /* RESULT */
-    #result-section { display:none; margin-top: 1.5rem; margin-bottom: 2rem; }
-    #result-section.visible { display:block; }
-    .result-card { background:#fff; border:2px solid #FFE0D6; border-radius:24px; overflow:hidden; margin-bottom:1.5rem; }
-    .result-banner { padding:2rem 2rem 1.5rem; }
-    .result-banner.lvl-normal  { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-bottom:2px solid #bbf7d0; }
-    .result-banner.lvl-mild    { background:linear-gradient(135deg,#fffbeb,#fef3c7); border-bottom:2px solid #fde68a; }
-    .result-banner.lvl-moderate{ background:linear-gradient(135deg,#fff7ed,#ffedd5); border-bottom:2px solid #fed7aa; }
-    .result-banner.lvl-severe  { background:linear-gradient(135deg,#fef2f2,#fee2e2); border-bottom:2px solid #fecaca; }
-    .result-banner.lvl-very-severe { background:linear-gradient(135deg,#fdf2f8,#fce7f3); border-bottom:2px solid #f9a8d4; }
-    
-    .result-level-badge { display:inline-block; padding:.3rem 1rem; border-radius:99px; font-size:.7rem; font-weight:800; letter-spacing:.5px; margin-bottom:1rem; }
-    .lvl-normal  .result-level-badge { background:#16a34a; color:#fff; }
-    .lvl-mild    .result-level-badge { background:#d97706; color:#fff; }
-    .lvl-moderate .result-level-badge { background:#ea580c; color:#fff; }
-    .lvl-severe  .result-level-badge { background:#dc2626; color:#fff; }
-    .lvl-very-severe .result-level-badge { background:#7c3aed; color:#fff; }
-    
-    .result-score-display { display:flex; align-items:baseline; gap:.75rem; margin-bottom:.75rem; }
-    .score-big { font-size:3.5rem; font-weight:900; line-height:1; color:#3D2A2A; font-family:'Playfair Display',serif; font-variant-numeric: lining-nums; }
-    .score-meta { font-size:.82rem; color:#8E7A7A; }
-    .result-title { font-size:1.15rem; font-weight:800; color:#3D2A2A; margin-bottom:.5rem; }
-    .result-desc { font-size:.85rem; line-height:1.75; color:#5D4A4A; }
-    .result-body { padding:1.75rem 2rem; }
-    .result-section-label { font-size:.68rem; font-weight:800; letter-spacing:1px; color:#FF7B8E; margin-bottom:.85rem; text-transform:uppercase; }
-    
-    .reco-list { list-style:none; display:flex; flex-direction:column; gap:.6rem; margin-bottom:1.5rem; padding-left: 0; }
-    .reco-list li { display:flex; align-items:flex-start; gap:.6rem; font-size:.82rem; color:#3D2A2A; line-height:1.6; }
-    .reco-list li::before { content:'→'; color:#FF7B8E; font-weight:700; flex-shrink:0; }
-    
-    /* DASS subscale table */
-    .dass-table { width:100%; border-collapse:collapse; font-size:.8rem; margin:1rem 0; }
-    .dass-table th { background:#FFF0EB; color:#C7434A; font-weight:700; padding:.6rem 1rem; text-align:left; font-size:.72rem; letter-spacing:.3px; }
-    .dass-table td { padding:.65rem 1rem; border-bottom:1px solid #FFF0EB; color:#3D2A2A; }
-    .dass-table tr:last-child td { border-bottom:none; }
-    .dass-badge { display:inline-block; padding:.18rem .6rem; border-radius:6px; font-size:.65rem; font-weight:700; }
-    
-    /* NEXT ACTIONS */
-    .next-actions { display:grid; grid-template-columns:1fr; gap:1rem; margin-top:1.5rem; }
-    @media(min-width:600px){ .next-actions{grid-template-columns:repeat(2,1fr);} }
-    .action-tile { border:2px solid #FFE0D6; border-radius:18px; padding:1.25rem; text-decoration:none; transition:all .25s; display:block; }
-    .action-tile:hover { transform:translateY(-3px); border-color:#FFB7B2; box-shadow:0 8px 20px rgba(255,123,142,.1); }
-    .action-tile.primary { border-color:#FF7B8E; background:#FFF5F3; }
-    .action-tile h4 { font-size:.88rem; font-weight:700; color:#3D2A2A; margin: 0 0 .3rem 0; }
-    .action-tile p { font-size:.75rem; color:#8E7A7A; line-height:1.5; margin: 0; }
-    
-    /* ALERT BOX */
-    .alert-danger { background:#fef2f2; border:2px solid #fecaca; border-radius:14px; padding:1.25rem 1.5rem; display:flex; gap:.75rem; align-items:flex-start; margin-top:1.25rem; }
-    .alert-danger p { font-size:.8rem; line-height:1.7; color:#7f1d1d; margin: 0; }
-    .alert-warn { background:#FFF5F3; border:2px solid #FFD9D0; border-radius:14px; padding:1.25rem 1.5rem; display:flex; gap:.75rem; align-items:flex-start; margin-bottom:2rem; margin-top: 1.5rem; }
-    .alert-warn p { font-size:.78rem; line-height:1.7; color:#7C3A3A; margin: 0; }
-    
-    /* RANGE BAR */
-    .range-visual { margin-top:1.25rem; }
-    .range-bar { display:flex; height:10px; border-radius:8px; overflow:hidden; gap:2px; }
-    .range-labels { display:flex; gap:2px; margin-top:.35rem; }
-    .range-labels span { font-size:.6rem; color:#A28B8B; text-align:center; }
-    
-    /* SCORE MARKER */
-    .score-marker-wrap { position:relative; margin-top:.4rem; }
-    .score-track { height:4px; background:#FFE0D6; border-radius:99px; }
-    .score-dot { position:absolute; top:-4px; width:12px; height:12px; background:#FF7B8E; border-radius:50%; transform:translateX(-50%); box-shadow:0 0 0 3px rgba(255,123,142,.25); transition:left .5s ease; }
-    body, .score-big, .scale-tile-name, .result-level-badge, .q-number, .breadcrumb span, .clinic-phone, .progress-text {
-    font-variant-numeric: lining-nums;
-    font-feature-settings: "lnum" on, "onum" off;
-    }
-    h1, h2, .page-hero h1, .assessment-header h2, .result-title, .result-banner .score-big {
-    font-variant-numeric: lining-nums;
-    font-feature-settings: "lnum" 1;
-    }
-  </style>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sàng Lọc Lâm Sàng — MindBuddy</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap"
+            rel="stylesheet"
+        />
 
-<div id="header-root"></div>
+        <script>
+            // ── FALLBACK ────────────────────────────────────────────────
+            if (typeof renderHeader !== "function") {
+                window.renderHeader = function (page) {
+                    return `<div style="padding: 1rem; background: #fff; border-bottom: 1px solid #FFE0D6; text-align:center; font-weight:700; color:#3D2A2A;">🧩 MindBuddy Navigation Bar (${page})</div>`;
+                };
+            }
+            if (typeof renderFooter !== "function") {
+                window.renderFooter = function () {
+                    return `<div style="padding: 1.5rem; background: #3D2A2A; color: #fff; text-align: center; font-size: 0.8rem;">© 2026 MindBuddy. Thang đo chuẩn hóa lâm sàng.</div>`;
+                };
+            }
+            if (typeof Store === "undefined") {
+                window.Store = {
+                    set: function (key, value) {
+                        try {
+                            localStorage.setItem(key, JSON.stringify(value));
+                        } catch (e) {
+                            console.error("Store Error:", e);
+                        }
+                    },
+                    get: function (key) {
+                        try {
+                            return JSON.parse(localStorage.getItem(key));
+                        } catch (e) {
+                            return null;
+                        }
+                    },
+                };
+            }
+            function initScrollReveal() {
+                console.log("ScrollReveal initialized.");
+            }
+        </script>
+        <script
+            src="shared.js"
+            onerror="
+                console.warn(
+                    'Không tìm thấy file shared.js gốc, sử dụng cấu hình dự phòng.',
+                )
+            "
+        ></script>
+        <script>
+            window.va =
+                window.va ||
+                function () {
+                    (window.vaq = window.vaq || []).push(arguments);
+                };
+        </script>
+        <script defer src="/_vercel/insights/script.js"></script>
 
-<div class="page-hero">
-  <div class="container">
-    <div class="breadcrumb">
-      <a href="index.html">Trang Chủ</a>
-      <span>&rsaquo;</span>
-      <span>Sàng Lọc</span>
-    </div>
-    <h1>Sàng Lọc Sức Khỏe Tâm Thần</h1>
-    <p>Chọn thang đo phù hợp và trả lời dựa trên cảm nhận của bạn trong khoảng thời gian được chỉ định. Không có câu trả lời đúng hay sai.</p>
-  </div>
-</div>
+        <style>
+            body {
+                background: #fff8f6;
+                margin: 0;
+                font-family: "Montserrat", sans-serif;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 1rem;
+            }
+            /* PAGE HERO */
+            .page-hero {
+                background: linear-gradient(145deg, #ffe8e6, #ffd9d0);
+                padding: 2.8rem 0 3.2rem;
+                position: relative;
+                overflow: hidden;
+            }
+            .page-hero::before {
+                content: "🌸";
+                font-size: 160px;
+                position: absolute;
+                bottom: -20px;
+                right: -20px;
+                opacity: 0.12;
+                pointer-events: none;
+            }
+            .page-hero h1 {
+                font-size: clamp(1.6rem, 4vw, 2.4rem);
+                font-weight: 800;
+                font-family: "Playfair Display", serif;
+                color: #3d2a2a;
+                margin: 0 0 0.5rem 0;
+            }
+            .page-hero p {
+                font-size: 0.9rem;
+                color: #6a5555;
+                line-height: 1.75;
+                max-width: 560px;
+                margin: 0;
+            }
+            .breadcrumb {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.8rem;
+                font-size: 0.75rem;
+            }
+            .breadcrumb a {
+                color: #a28b8b;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+            .breadcrumb a:hover {
+                color: #ff7b8e;
+            }
+            .breadcrumb span {
+                color: #ff7b8e;
+                font-weight: 600;
+            }
 
-<div class="section" style="padding-top:1rem;">
-  <div class="container">
-    
-    <div id="step-select">
-      <div class="alert-warn">
-        <span style="font-size:1.3rem;flex-shrink:0;">⚕️</span>
-        <p>Tất cả thang đo dưới đây đều dựa trên nghiên cứu y khoa được công bố trong tạp chí khoa học quốc tế. <strong>Kết quả chỉ mang tính tham khảo</strong> và không thay thế đánh giá từ bác sĩ hoặc nhà tâm lý học lâm sàng.</p>
-      </div>
-      <h2 style="font-size:.9rem;font-weight:700;color:#3D2A2A;margin-bottom:1.25rem;letter-spacing:.5px;text-transform:uppercase;">Chọn thang đo bạn muốn thực hiện</h2>
-      
-      <div id="scale-selector">
-        <div class="scale-tile" data-scale="pss14" onclick="selectScale('pss14')">
-          <span class="scale-tile-icon">🧠</span>
-          <span class="scale-tile-name">PSS-14</span>
-          <span class="scale-tile-full">Thang Đo Căng Thẳng Cảm Nhận</span>
-          <span class="scale-tile-count">14 câu · ~7 phút</span>
+            /* SCALE SELECTOR */
+            #scale-selector {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+            @media (min-width: 640px) {
+                #scale-selector {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            @media (min-width: 900px) {
+                #scale-selector {
+                    grid-template-columns: repeat(5, 1fr);
+                }
+            }
+
+            .scale-tile {
+                background: #fff;
+                border-radius: 28px;
+                padding: 1.5rem 1rem;
+                text-align: center;
+                cursor: pointer;
+                border: 2px solid #ffe0d6;
+                transition: all 0.25s ease;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            }
+            .scale-tile:hover {
+                transform: translateY(-5px);
+                border-color: #ffb7b2;
+                box-shadow: 0 12px 28px rgba(255, 123, 142, 0.14);
+            }
+            .scale-tile.selected {
+                border-color: #ff7b8e;
+                background: linear-gradient(145deg, #fff5f3, #ffe8e6);
+                box-shadow: 0 0 0 4px rgba(255, 123, 142, 0.12);
+            }
+            .scale-tile-icon {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            .scale-tile-name {
+                font-weight: 800;
+                font-size: 1.05rem;
+                color: #3d2a2a;
+                display: block;
+                letter-spacing: -0.3px;
+            }
+            .scale-tile-full {
+                font-size: 0.65rem;
+                color: #a28b8b;
+                display: block;
+                margin-top: 0.25rem;
+                line-height: 1.4;
+            }
+            .scale-tile-count {
+                display: inline-block;
+                margin-top: 0.75rem;
+                background: #ffe8e6;
+                padding: 0.2rem 0.75rem;
+                border-radius: 99px;
+                font-size: 0.68rem;
+                font-weight: 700;
+                color: #ff7b8e;
+            }
+            .scale-tile.selected .scale-tile-count {
+                background: #ff7b8e;
+                color: #fff;
+            }
+
+            #start-row {
+                display: none;
+                margin-top: 0.5rem;
+            }
+            .btn-start {
+                background: linear-gradient(135deg, #ff7b8e, #ff5a70);
+                color: #fff;
+                padding: 0.85rem 2.5rem;
+                border-radius: 99px;
+                font-size: 0.9rem;
+                font-weight: 700;
+                border: none;
+                cursor: pointer;
+                transition: all 0.25s;
+                box-shadow: 0 4px 14px rgba(255, 123, 142, 0.3);
+            }
+            .btn-start:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(255, 123, 142, 0.4);
+            }
+
+            /* ASSESSMENT BOX */
+            #assessment-box {
+                display: none;
+            }
+            #assessment-box.visible {
+                display: block;
+            }
+            .assessment-header {
+                background: #fff;
+                border: 1.5px solid #ffe0d6;
+                border-radius: 20px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                margin-top: 1.5rem;
+            }
+            .assessment-header h2 {
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #3d2a2a;
+                font-family: "Playfair Display", serif;
+                margin: 0;
+            }
+            .assessment-header p {
+                font-size: 0.78rem;
+                color: #8e7a7a;
+                line-height: 1.65;
+                margin-top: 0.5rem;
+            }
+
+            .progress-row {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+            .progress-bar-bg {
+                flex: 1;
+                height: 8px;
+                background: #ffe8e6;
+                border-radius: 99px;
+                overflow: hidden;
+            }
+            .progress-bar-fill {
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, #ff7b8e, #ffb7b2);
+                border-radius: 99px;
+                transition: width 0.4s ease;
+            }
+            .progress-text {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #ff7b8e;
+                white-space: nowrap;
+            }
+
+            /* QUESTION BLOCKS */
+            .question-block {
+                background: #fff;
+                border: 1.5px solid #ffe0d6;
+                border-radius: 20px;
+                padding: 1.75rem;
+                margin-bottom: 1rem;
+                transition: border-color 0.3s;
+            }
+            .question-block:hover {
+                border-color: #ffb7b2;
+            }
+            .q-number {
+                font-size: 0.65rem;
+                font-weight: 700;
+                letter-spacing: 0.8px;
+                color: #ff7b8e;
+                margin-bottom: 0.6rem;
+                text-transform: uppercase;
+            }
+            .q-text {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #3d2a2a;
+                line-height: 1.65;
+                margin-bottom: 1.25rem;
+            }
+            .q-subscale {
+                display: inline-block;
+                background: #fff0eb;
+                color: #c7434a;
+                font-size: 0.62rem;
+                font-weight: 700;
+                padding: 0.15rem 0.55rem;
+                border-radius: 6px;
+                margin-left: 0.5rem;
+                vertical-align: middle;
+            }
+
+            /* OPTIONS */
+            .options-wrap {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.6rem;
+            }
+            .opt-btn {
+                border: 2px solid #ffe0d6;
+                background: #fff8f6;
+                border-radius: 14px;
+                padding: 0.6rem 1rem;
+                font-size: 0.78rem;
+                font-weight: 500;
+                color: #5d4a4a;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: inherit;
+            }
+            .opt-btn:hover {
+                border-color: #ff7b8e;
+                background: #fff0eb;
+                color: #ff5a70;
+            }
+            .opt-btn.selected {
+                border-color: #ff7b8e;
+                background: linear-gradient(135deg, #ffe8e6, #ffd9d0);
+                color: #c7434a;
+                font-weight: 700;
+            }
+
+            .options-scale {
+                display: flex;
+                gap: 0.4rem;
+                flex-wrap: wrap;
+                width: 100%;
+            }
+            .opt-scale-btn {
+                flex: 1;
+                min-width: 80px;
+                text-align: center;
+                border: 2px solid #ffe0d6;
+                background: #fff8f6;
+                border-radius: 14px;
+                padding: 0.7rem 0.4rem;
+                font-size: 0.72rem;
+                font-weight: 500;
+                color: #5d4a4a;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: inherit;
+                line-height: 1.3;
+            }
+            .opt-scale-btn:hover {
+                border-color: #ff7b8e;
+                background: #fff0eb;
+                color: #ff5a70;
+            }
+            .opt-scale-btn.selected {
+                border-color: #ff7b8e;
+                background: linear-gradient(135deg, #ffe8e6, #ffd9d0);
+                color: #c7434a;
+                font-weight: 700;
+            }
+
+            /* ACTION ROW */
+            .action-row {
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.75rem;
+                margin-top: 2rem;
+                margin-bottom: 2rem;
+            }
+            .btn-back {
+                background: #fff0eb;
+                color: #8e7a7a;
+                padding: 0.8rem 1.5rem;
+                border-radius: 99px;
+                font-size: 0.82rem;
+                font-weight: 600;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: inherit;
+            }
+            .btn-back:hover {
+                background: #ffe0d6;
+                color: #5d4a4a;
+            }
+            .btn-submit {
+                background: linear-gradient(135deg, #ff7b8e, #ff5a70);
+                color: #fff;
+                padding: 0.8rem 2rem;
+                border-radius: 99px;
+                font-size: 0.85rem;
+                font-weight: 700;
+                border: none;
+                cursor: pointer;
+                transition: all 0.25s;
+                font-family: inherit;
+                box-shadow: 0 4px 12px rgba(255, 90, 112, 0.25);
+            }
+            .btn-submit:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(255, 90, 112, 0.35);
+            }
+            .btn-submit:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            /* RESULT */
+            #result-section {
+                display: none;
+                margin-top: 1.5rem;
+                margin-bottom: 2rem;
+            }
+            #result-section.visible {
+                display: block;
+            }
+            .result-card {
+                background: #fff;
+                border: 2px solid #ffe0d6;
+                border-radius: 24px;
+                overflow: hidden;
+                margin-bottom: 1.5rem;
+            }
+            .result-banner {
+                padding: 2rem 2rem 1.5rem;
+            }
+            .result-banner.lvl-normal {
+                background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+                border-bottom: 2px solid #bbf7d0;
+            }
+            .result-banner.lvl-mild {
+                background: linear-gradient(135deg, #fffbeb, #fef3c7);
+                border-bottom: 2px solid #fde68a;
+            }
+            .result-banner.lvl-moderate {
+                background: linear-gradient(135deg, #fff7ed, #ffedd5);
+                border-bottom: 2px solid #fed7aa;
+            }
+            .result-banner.lvl-severe {
+                background: linear-gradient(135deg, #fef2f2, #fee2e2);
+                border-bottom: 2px solid #fecaca;
+            }
+            .result-banner.lvl-very-severe {
+                background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+                border-bottom: 2px solid #f9a8d4;
+            }
+
+            .result-level-badge {
+                display: inline-block;
+                padding: 0.3rem 1rem;
+                border-radius: 99px;
+                font-size: 0.7rem;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+                margin-bottom: 1rem;
+            }
+            .lvl-normal .result-level-badge {
+                background: #16a34a;
+                color: #fff;
+            }
+            .lvl-mild .result-level-badge {
+                background: #d97706;
+                color: #fff;
+            }
+            .lvl-moderate .result-level-badge {
+                background: #ea580c;
+                color: #fff;
+            }
+            .lvl-severe .result-level-badge {
+                background: #dc2626;
+                color: #fff;
+            }
+            .lvl-very-severe .result-level-badge {
+                background: #7c3aed;
+                color: #fff;
+            }
+
+            .result-score-display {
+                display: flex;
+                align-items: baseline;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            .score-big {
+                font-size: 3.5rem;
+                font-weight: 900;
+                line-height: 1;
+                color: #3d2a2a;
+                font-family: "Playfair Display", serif;
+                font-variant-numeric: lining-nums;
+            }
+            .score-meta {
+                font-size: 0.82rem;
+                color: #8e7a7a;
+            }
+            .result-title {
+                font-size: 1.15rem;
+                font-weight: 800;
+                color: #3d2a2a;
+                margin-bottom: 0.5rem;
+            }
+            .result-desc {
+                font-size: 0.85rem;
+                line-height: 1.75;
+                color: #5d4a4a;
+            }
+            .result-body {
+                padding: 1.75rem 2rem;
+            }
+            .result-section-label {
+                font-size: 0.68rem;
+                font-weight: 800;
+                letter-spacing: 1px;
+                color: #ff7b8e;
+                margin-bottom: 0.85rem;
+                text-transform: uppercase;
+            }
+
+            .reco-list {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.6rem;
+                margin-bottom: 1.5rem;
+                padding-left: 0;
+            }
+            .reco-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.6rem;
+                font-size: 0.82rem;
+                color: #3d2a2a;
+                line-height: 1.6;
+            }
+            .reco-list li::before {
+                content: "→";
+                color: #ff7b8e;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            /* DASS subscale table */
+            .dass-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+                margin: 1rem 0;
+            }
+            .dass-table th {
+                background: #fff0eb;
+                color: #c7434a;
+                font-weight: 700;
+                padding: 0.6rem 1rem;
+                text-align: left;
+                font-size: 0.72rem;
+                letter-spacing: 0.3px;
+            }
+            .dass-table td {
+                padding: 0.65rem 1rem;
+                border-bottom: 1px solid #fff0eb;
+                color: #3d2a2a;
+            }
+            .dass-table tr:last-child td {
+                border-bottom: none;
+            }
+            .dass-badge {
+                display: inline-block;
+                padding: 0.18rem 0.6rem;
+                border-radius: 6px;
+                font-size: 0.65rem;
+                font-weight: 700;
+            }
+
+            /* NEXT ACTIONS */
+            .next-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+            @media (min-width: 600px) {
+                .next-actions {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            .action-tile {
+                border: 2px solid #ffe0d6;
+                border-radius: 18px;
+                padding: 1.25rem;
+                text-decoration: none;
+                transition: all 0.25s;
+                display: block;
+            }
+            .action-tile:hover {
+                transform: translateY(-3px);
+                border-color: #ffb7b2;
+                box-shadow: 0 8px 20px rgba(255, 123, 142, 0.1);
+            }
+            .action-tile.primary {
+                border-color: #ff7b8e;
+                background: #fff5f3;
+            }
+            .action-tile h4 {
+                font-size: 0.88rem;
+                font-weight: 700;
+                color: #3d2a2a;
+                margin: 0 0 0.3rem 0;
+            }
+            .action-tile p {
+                font-size: 0.75rem;
+                color: #8e7a7a;
+                line-height: 1.5;
+                margin: 0;
+            }
+
+            /* ALERT BOX */
+            .alert-danger {
+                background: #fef2f2;
+                border: 2px solid #fecaca;
+                border-radius: 14px;
+                padding: 1.25rem 1.5rem;
+                display: flex;
+                gap: 0.75rem;
+                align-items: flex-start;
+                margin-top: 1.25rem;
+            }
+            .alert-danger p {
+                font-size: 0.8rem;
+                line-height: 1.7;
+                color: #7f1d1d;
+                margin: 0;
+            }
+            .alert-warn {
+                background: #fff5f3;
+                border: 2px solid #ffd9d0;
+                border-radius: 14px;
+                padding: 1.25rem 1.5rem;
+                display: flex;
+                gap: 0.75rem;
+                align-items: flex-start;
+                margin-bottom: 2rem;
+                margin-top: 1.5rem;
+            }
+            .alert-warn p {
+                font-size: 0.78rem;
+                line-height: 1.7;
+                color: #7c3a3a;
+                margin: 0;
+            }
+
+            /* RANGE BAR */
+            .range-visual {
+                margin-top: 1.25rem;
+            }
+            .range-bar {
+                display: flex;
+                height: 10px;
+                border-radius: 8px;
+                overflow: hidden;
+                gap: 2px;
+            }
+            .range-labels {
+                display: flex;
+                gap: 2px;
+                margin-top: 0.35rem;
+            }
+            .range-labels span {
+                font-size: 0.6rem;
+                color: #a28b8b;
+                text-align: center;
+            }
+
+            /* SCORE MARKER */
+            .score-marker-wrap {
+                position: relative;
+                margin-top: 0.4rem;
+            }
+            .score-track {
+                height: 4px;
+                background: #ffe0d6;
+                border-radius: 99px;
+            }
+            .score-dot {
+                position: absolute;
+                top: -4px;
+                width: 12px;
+                height: 12px;
+                background: #ff7b8e;
+                border-radius: 50%;
+                transform: translateX(-50%);
+                box-shadow: 0 0 0 3px rgba(255, 123, 142, 0.25);
+                transition: left 0.5s ease;
+            }
+
+            /* CHATBOT */
+            .chatbot-card {
+                margin-top: 1.25rem;
+                background: #fff;
+                border: 2px solid #ffe0d6;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 14px 36px rgba(255, 123, 142, 0.1);
+            }
+            .chatbot-head {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1.2rem 1.4rem;
+                background: linear-gradient(135deg, #fff5f3, #ffe8e6);
+                border-bottom: 1.5px solid #ffe0d6;
+            }
+            .chatbot-head h3 {
+                font-family: "Playfair Display", serif;
+                font-size: 1.05rem;
+                color: #3d2a2a;
+                margin: 0 0 0.25rem;
+            }
+            .chatbot-head p {
+                font-size: 0.75rem;
+                color: #7a6464;
+                line-height: 1.55;
+                margin: 0;
+            }
+            .chatbot-status {
+                font-size: 0.66rem;
+                font-weight: 800;
+                color: #ff5a70;
+                background: #fff;
+                border: 1px solid #ffd9d0;
+                border-radius: 99px;
+                padding: 0.28rem 0.7rem;
+                white-space: nowrap;
+            }
+            .chatbot-messages {
+                height: 360px;
+                overflow-y: auto;
+                padding: 1rem;
+                background: #fffdfc;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .chat-msg {
+                max-width: 86%;
+                border-radius: 18px;
+                padding: 0.78rem 0.95rem;
+                font-size: 0.8rem;
+                line-height: 1.65;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+            .chat-msg.user {
+                align-self: flex-end;
+                background: linear-gradient(135deg, #ff7b8e, #ff5a70);
+                color: #fff;
+                border-bottom-right-radius: 6px;
+            }
+            .chat-msg.assistant {
+                align-self: flex-start;
+                background: #fff0eb;
+                color: #3d2a2a;
+                border: 1px solid #ffe0d6;
+                border-bottom-left-radius: 6px;
+            }
+            .chat-msg.loading {
+                color: #a28b8b;
+                font-style: italic;
+            }
+            .chatbot-suggestions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 0 1rem 1rem;
+                background: #fffdfc;
+            }
+            .chatbot-suggestions button {
+                border: 1.5px solid #ffe0d6;
+                background: #fff;
+                color: #ff5a70;
+                border-radius: 99px;
+                padding: 0.45rem 0.75rem;
+                font-size: 0.72rem;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .chatbot-suggestions button:hover {
+                background: #fff0eb;
+                border-color: #ffb7b2;
+            }
+            .chatbot-form {
+                display: flex;
+                gap: 0.65rem;
+                padding: 1rem;
+                border-top: 1.5px solid #ffe0d6;
+                background: #fff;
+            }
+            .chatbot-form textarea {
+                flex: 1;
+                resize: none;
+                min-height: 44px;
+                max-height: 120px;
+                border: 1.5px solid #ffe0d6;
+                border-radius: 16px;
+                padding: 0.75rem 0.9rem;
+                font-size: 0.8rem;
+                font-family: inherit;
+                color: #3d2a2a;
+                outline: none;
+            }
+            .chatbot-form textarea:focus {
+                border-color: #ff7b8e;
+                box-shadow: 0 0 0 3px rgba(255, 123, 142, 0.12);
+            }
+            .chatbot-form button {
+                border: none;
+                border-radius: 16px;
+                padding: 0 1.15rem;
+                background: linear-gradient(135deg, #ff7b8e, #ff5a70);
+                color: white;
+                font-weight: 800;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .chatbot-form button:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            .chatbot-note {
+                padding: 0 1rem 1rem;
+                font-size: 0.68rem;
+                color: #a28b8b;
+                line-height: 1.55;
+                background: #fff;
+            }
+            @media (max-width: 600px) {
+                .chatbot-head {
+                    flex-direction: column;
+                }
+                .chatbot-status {
+                    align-self: flex-start;
+                }
+                .chat-msg {
+                    max-width: 94%;
+                }
+                .chatbot-form {
+                    flex-direction: column;
+                }
+                .chatbot-form button {
+                    padding: 0.75rem;
+                }
+            }
+            body,
+            .score-big,
+            .scale-tile-name,
+            .result-level-badge,
+            .q-number,
+            .breadcrumb span,
+            .clinic-phone,
+            .progress-text {
+                font-variant-numeric: lining-nums;
+                font-feature-settings:
+                    "lnum" on,
+                    "onum" off;
+            }
+            h1,
+            h2,
+            .page-hero h1,
+            .assessment-header h2,
+            .result-title,
+            .result-banner .score-big {
+                font-variant-numeric: lining-nums;
+                font-feature-settings: "lnum" 1;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header-root"></div>
+
+        <div class="page-hero">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html">Trang Chủ</a>
+                    <span>&rsaquo;</span>
+                    <span>Sàng Lọc</span>
+                </div>
+                <h1>Sàng Lọc Sức Khỏe Tâm Thần</h1>
+                <p>
+                    Chọn thang đo phù hợp và trả lời dựa trên cảm nhận của bạn
+                    trong khoảng thời gian được chỉ định. Không có câu trả lời
+                    đúng hay sai.
+                </p>
+            </div>
         </div>
-        <div class="scale-tile" data-scale="phq9" onclick="selectScale('phq9')">
-          <span class="scale-tile-icon">💭</span>
-          <span class="scale-tile-name">PHQ-9</span>
-          <span class="scale-tile-full">Sàng Lọc Trầm Cảm</span>
-          <span class="scale-tile-count">9 câu · ~5 phút</span>
+
+        <div class="section" style="padding-top: 1rem">
+            <div class="container">
+                <div id="step-select">
+                    <div class="alert-warn">
+                        <span style="font-size: 1.3rem; flex-shrink: 0"
+                            >⚕️</span
+                        >
+                        <p>
+                            Tất cả thang đo dưới đây đều dựa trên nghiên cứu y
+                            khoa được công bố trong tạp chí khoa học quốc tế.
+                            <strong>Kết quả chỉ mang tính tham khảo</strong> và
+                            không thay thế đánh giá từ bác sĩ hoặc nhà tâm lý
+                            học lâm sàng.
+                        </p>
+                    </div>
+                    <h2
+                        style="
+                            font-size: 0.9rem;
+                            font-weight: 700;
+                            color: #3d2a2a;
+                            margin-bottom: 1.25rem;
+                            letter-spacing: 0.5px;
+                            text-transform: uppercase;
+                        "
+                    >
+                        Chọn thang đo bạn muốn thực hiện
+                    </h2>
+
+                    <div id="scale-selector">
+                        <div
+                            class="scale-tile"
+                            data-scale="pss14"
+                            onclick="selectScale('pss14')"
+                        >
+                            <span class="scale-tile-icon">🧠</span>
+                            <span class="scale-tile-name">PSS-14</span>
+                            <span class="scale-tile-full"
+                                >Thang Đo Căng Thẳng Cảm Nhận</span
+                            >
+                            <span class="scale-tile-count"
+                                >14 câu · ~7 phút</span
+                            >
+                        </div>
+                        <div
+                            class="scale-tile"
+                            data-scale="phq9"
+                            onclick="selectScale('phq9')"
+                        >
+                            <span class="scale-tile-icon">💭</span>
+                            <span class="scale-tile-name">PHQ-9</span>
+                            <span class="scale-tile-full"
+                                >Sàng Lọc Trầm Cảm</span
+                            >
+                            <span class="scale-tile-count"
+                                >9 câu · ~5 phút</span
+                            >
+                        </div>
+                        <div
+                            class="scale-tile"
+                            data-scale="gad7"
+                            onclick="selectScale('gad7')"
+                        >
+                            <span class="scale-tile-icon">😰</span>
+                            <span class="scale-tile-name">GAD-7</span>
+                            <span class="scale-tile-full"
+                                >Đánh Giá Rối Loạn Lo Âu</span
+                            >
+                            <span class="scale-tile-count"
+                                >7 câu · ~4 phút</span
+                            >
+                        </div>
+                        <div
+                            class="scale-tile"
+                            data-scale="dass21"
+                            onclick="selectScale('dass21')"
+                        >
+                            <span class="scale-tile-icon">📊</span>
+                            <span class="scale-tile-name">DASS-21</span>
+                            <span class="scale-tile-full"
+                                >Trầm Cảm · Lo Âu · Căng Thẳng</span
+                            >
+                            <span class="scale-tile-count"
+                                >21 câu · ~10 phút</span
+                            >
+                        </div>
+                        <div
+                            class="scale-tile"
+                            data-scale="isi"
+                            onclick="selectScale('isi')"
+                        >
+                            <span class="scale-tile-icon">😴</span>
+                            <span class="scale-tile-name">ISI</span>
+                            <span class="scale-tile-full"
+                                >Chỉ Số Mức Độ Mất Ngủ</span
+                            >
+                            <span class="scale-tile-count"
+                                >7 câu · ~4 phút</span
+                            >
+                        </div>
+                    </div>
+
+                    <div id="start-row">
+                        <button
+                            class="btn-start"
+                            onclick="startAssessment()"
+                            id="start-btn"
+                        >
+                            Bắt Đầu →
+                        </button>
+                    </div>
+                </div>
+
+                <div id="assessment-box">
+                    <div class="assessment-header">
+                        <h2 id="assess-title"></h2>
+                        <p id="assess-desc"></p>
+                        <div class="progress-row">
+                            <div class="progress-bar-bg">
+                                <div
+                                    class="progress-bar-fill"
+                                    id="progress-fill"
+                                ></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">
+                                0 / 0
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="questions-container"></div>
+
+                    <div class="action-row">
+                        <button class="btn-back" onclick="resetAssessment()">
+                            &larr; Chọn lại
+                        </button>
+                        <button
+                            class="btn-submit"
+                            id="submit-btn"
+                            onclick="submitAssessment()"
+                            disabled
+                        >
+                            Xem Kết Quả →
+                        </button>
+                    </div>
+                </div>
+
+                <div id="result-section">
+                    <div id="result-container"></div>
+                </div>
+            </div>
         </div>
-        <div class="scale-tile" data-scale="gad7" onclick="selectScale('gad7')">
-          <span class="scale-tile-icon">😰</span>
-          <span class="scale-tile-name">GAD-7</span>
-          <span class="scale-tile-full">Đánh Giá Rối Loạn Lo Âu</span>
-          <span class="scale-tile-count">7 câu · ~4 phút</span>
-        </div>
-        <div class="scale-tile" data-scale="dass21" onclick="selectScale('dass21')">
-          <span class="scale-tile-icon">📊</span>
-          <span class="scale-tile-name">DASS-21</span>
-          <span class="scale-tile-full">Trầm Cảm · Lo Âu · Căng Thẳng</span>
-          <span class="scale-tile-count">21 câu · ~10 phút</span>
-        </div>
-        <div class="scale-tile" data-scale="isi" onclick="selectScale('isi')">
-          <span class="scale-tile-icon">😴</span>
-          <span class="scale-tile-name">ISI</span>
-          <span class="scale-tile-full">Chỉ Số Mức Độ Mất Ngủ</span>
-          <span class="scale-tile-count">7 câu · ~4 phút</span>
-        </div>
-      </div>
-      
-      <div id="start-row">
-        <button class="btn-start" onclick="startAssessment()" id="start-btn">Bắt Đầu →</button>
-      </div>
-    </div>
 
-    <div id="assessment-box">
-      <div class="assessment-header">
-        <h2 id="assess-title"></h2>
-        <p id="assess-desc"></p>
-        <div class="progress-row">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progress-fill"></div>
-          </div>
-          <div class="progress-text" id="progress-text">0 / 0</div>
-        </div>
-      </div>
-      
-      <div id="questions-container"></div>
-      
-      <div class="action-row">
-        <button class="btn-back" onclick="resetAssessment()">&larr; Chọn lại</button>
-        <button class="btn-submit" id="submit-btn" onclick="submitAssessment()" disabled>Xem Kết Quả →</button>
-      </div>
-    </div>
+        <div id="footer-root"></div>
 
-    <div id="result-section">
-      <div id="result-container"></div>
-    </div>
+        <script>
+            // Khởi tạo Header và Footer tĩnh
+            document.getElementById("header-root").innerHTML =
+                renderHeader("assessment");
+            document.getElementById("footer-root").innerHTML = renderFooter();
 
-  </div>
-</div>
+            // ════════════════════════════════════════════════════════════════
+            //  DỮ LIỆU 5 THANG ĐO LÂM SÀNG — CHÍNH XÁC THEO TÀI LIỆU Y KHOA
+            // ════════════════════════════════════════════════════════════════
+            const SCALES = {
+                // ── 1. PSS-14 ────────────────────────────────────────────────
+                pss14: {
+                    id: "pss14",
+                    name: "PSS-14",
+                    title: "Thang Đo Cảm Nhận Căng Thẳng (PSS-14)",
+                    reference:
+                        "Cohen, S., Kamarck, T., & Mermelstein, R. (1983). A Global Measure of Perceived Stress. Journal of Health and Social Behavior, 24(4), 385–396.",
+                    timeframe: "1 tháng gần nhất",
+                    instruction:
+                        "Hãy chỉ ra mức độ thường xuyên bạn cảm thấy hoặc suy nghĩ theo cách sau đây trong <strong>1 tháng gần nhất</strong>:",
+                    optionType: "frequency5",
+                    options: [
+                        { label: "Chưa bao giờ", value: 0 },
+                        { label: "Hầu như không bao giờ", value: 1 },
+                        { label: "Thỉnh thoảng", value: 2 },
+                        { label: "Khá thường xuyên", value: 3 },
+                        { label: "Rất thường xuyên", value: 4 },
+                    ],
+                    reversedIdx: [3, 4, 6, 7, 10, 11, 13],
+                    questions: [
+                        {
+                            text: "Bạn có thường xuyên bị buồn phiền/khó chịu vì những điều xảy ra bất ngờ không?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mình không thể kiểm soát được những việc quan trọng trong cuộc sống?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy bồn chồn, lo lắng và căng thẳng?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy tự tin vào khả năng xử lý các vấn đề cá nhân của mình không?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mọi việc đang diễn ra theo đúng ý mình?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mình không thể đương đầu với tất cả những việc mà mình phải làm?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mình có khả năng kiểm soát những điều gây kích động/bực bội trong cuộc sống?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mình đang làm chủ mọi việc (ở đỉnh cao phong độ)?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên tức giận vì những việc xảy ra nằm ngoài tầm kiểm soát của mình?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy các khó khăn đang chồng chất đến mức bạn không thể vượt qua được?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên thấy mình hay nghĩ về những việc mình cần phải hoàn thành?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên thấy mình có khả năng kiểm soát cách bản thân sử dụng thời gian?",
+                            reversed: true,
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy những chuyển biến xấu trong cuộc sống quá nhiều khiến bạn không thể chịu đựng nổi?",
+                        },
+                        {
+                            text: "Bạn có thường xuyên cảm thấy mình có thể vượt qua mọi tình huống khó khăn trong cuộc sống?",
+                            reversed: true,
+                        },
+                    ],
+                    score(answers) {
+                        let total = 0;
+                        answers.forEach((a, i) => {
+                            const v = this.options[a].value;
+                            total += this.reversedIdx.includes(i) ? 4 - v : v;
+                        });
+                        return total;
+                    },
+                    maxScore: 56,
+                    interpret(score) {
+                        if (score <= 18)
+                            return {
+                                levelKey: "normal",
+                                levelLabel: "THẤP",
+                                title: "Mức căng thẳng thấp",
+                                desc: "Điểm số cho thấy bạn đang kiểm soát tốt các áp lực trong cuộc sống. Mức stress trong giới hạn bình thường.",
+                                recs: [
+                                    "Duy trì các thói quen sức khỏe tích cực hiện tại",
+                                    "Tiếp tục thực hành kỹ thuật quản lý stress phòng ngừa như thể dục, thiền định",
+                                    "Kiểm tra định kỳ mỗi 3–6 tháng",
+                                ],
+                                nextAction: "monitor",
+                            };
+                        if (score <= 37)
+                            return {
+                                levelKey: "moderate",
+                                levelLabel: "TRUNG BÌNH",
+                                title: "Mức căng thẳng trung bình",
+                                desc: "Điểm số cho thấy bạn đang chịu một mức độ căng thẳng đáng kể. Đây là thời điểm phù hợp để tìm kiếm hỗ trợ và điều chỉnh lối sống.",
+                                recs: [
+                                    "Cân nhắc gặp chuyên gia tâm lý để được tư vấn trực tiếp",
+                                    "Tìm hiểu và thực hành kỹ thuật thư giãn có hướng dẫn (thở sâu, thư giãn cơ tiến bộ)",
+                                    "Đánh giá và điều chỉnh khối lượng công việc hoặc học tập",
+                                    "Tăng cường hỗ trợ xã hội từ người thân, bạn bè đáng tin cậy",
+                                ],
+                                nextAction: "consult",
+                            };
+                        return {
+                            levelKey: "severe",
+                            levelLabel: "CAO",
+                            title: "Mức căng thẳng cao — Quá tải nghiêm trọng",
+                            desc: "Điểm số ở mức cao, cho thấy tình trạng căng thẳng mãn tính có thể ảnh hưởng nghiêm trọng đến sức khỏe thể chất và tinh thần. Cần được hỗ trợ chuyên môn.",
+                            recs: [
+                                "Nên gặp bác sĩ tâm thần hoặc nhà tâm lý học lâm sàng sớm nhất có thể",
+                                "Không nên trì hoãn việc tìm kiếm hỗ trợ chuyên môn",
+                                "Thông báo cho người thân đáng tin cậy về tình trạng của bạn",
+                                "Gọi đường dây hỗ trợ 1900 9095 nếu cần tư vấn khẩn cấp",
+                            ],
+                            nextAction: "urgent",
+                        };
+                    },
+                    ranges: [
+                        { label: "Thấp (0–18)", pct: 32, color: "#16a34a" },
+                        {
+                            label: "Trung bình (19–37)",
+                            pct: 35,
+                            color: "#f59e0b",
+                        },
+                        { label: "Cao (38–56)", pct: 33, color: "#dc2626" },
+                    ],
+                },
 
-<div id="footer-root"></div>
+                // ── 2. PHQ-9 ─────────────────────────────────────────────────
+                phq9: {
+                    id: "phq9",
+                    name: "PHQ-9",
+                    title: "Bảng Kiểm Sàng Lọc Trầm Cảm (PHQ-9)",
+                    reference:
+                        "Kroenke, K., Spitzer, R. L., & Williams, J. B. W. (2001). The PHQ-9: Validity of a Brief Depression Severity Measure. Journal of General Internal Medicine, 16(9), 606–613.",
+                    timeframe: "2 tuần gần nhất",
+                    instruction:
+                        "Trong <strong>2 tuần gần nhất</strong>, bạn có bị làm phiền bởi các vấn đề sau không? Hãy chọn mức độ phù hợp nhất:",
+                    optionType: "frequency4",
+                    options: [
+                        { label: "Không ngày nào", value: 0 },
+                        { label: "Vài ngày", value: 1 },
+                        { label: "Hơn một nửa số ngày", value: 2 },
+                        { label: "Gần như mọi ngày", value: 3 },
+                    ],
+                    reversedIdx: [],
+                    questions: [
+                        {
+                            text: "Ít có hứng thú hoặc niềm vui khi làm các việc hàng ngày.",
+                        },
+                        {
+                            text: "Cảm thấy chán nản, trầm uất, hoặc tuyệt vọng.",
+                        },
+                        {
+                            text: "Khó ngủ, ngủ không sâu giấc, hoặc ngủ quá nhiều.",
+                        },
+                        { text: "Cảm thấy mệt mỏi hoặc có ít năng lượng." },
+                        { text: "Ăn không ngon miệng hoặc ăn quá nhiều." },
+                        {
+                            text: "Cảm thấy thất vọng về bản thân — hoặc cảm thấy mình là người thất bại, làm cho bản thân hoặc gia đình bị thất vọng.",
+                        },
+                        {
+                            text: "Gặp khó khăn trong việc tập trung vào mọi việc, chẳng hạn như khi đọc báo hoặc xem tivi.",
+                        },
+                        {
+                            text: "Di chuyển hoặc nói năng chậm chạp đến mức người khác có thể nhận thấy. Hoặc ngược lại, bồn chồn, nhấp nhổm đến mức đi lại nhiều hơn bình thường.",
+                        },
+                        {
+                            text: "Có suy nghĩ rằng thà mình chết đi còn hơn, hoặc muốn tự làm tổn thương bản thân bằng cách nào đó.",
+                            isCrisis: true,
+                        },
+                    ],
+                    score(answers) {
+                        return answers.reduce(
+                            (s, a) => s + this.options[a].value,
+                            0,
+                        );
+                    },
+                    maxScore: 27,
+                    interpret(score, answers) {
+                        const hasCrisis = answers[8] > 0;
+                        let levelKey, levelLabel, title, desc, recs, nextAction;
 
-<script>
-// Khởi tạo Header và Footer tĩnh
-document.getElementById('header-root').innerHTML = renderHeader('assessment');
-document.getElementById('footer-root').innerHTML = renderFooter();
+                        if (score <= 4) {
+                            levelKey = "normal";
+                            levelLabel = "KHÔNG CÓ / TỐI THIỂU";
+                            title = "Không có triệu chứng trầm cảm đáng kể";
+                            desc =
+                                "Điểm số không gợi ý có triệu chứng trầm cảm đáng kể. Tiếp tục duy trì lối sống lành mạnh.";
+                            recs = [
+                                "Duy trì các hoạt động xã hội và thể chất",
+                                "Ngủ đủ giấc, ăn uống điều độ",
+                                "Kiểm tra định kỳ khi cần thiết",
+                            ];
+                            nextAction = "monitor";
+                        } else if (score <= 9) {
+                            levelKey = "mild";
+                            levelLabel = "NHẸ";
+                            title = "Trầm cảm mức độ nhẹ";
+                            desc =
+                                "Điểm số gợi ý có một số triệu chứng trầm cảm nhẹ. Nên theo dõi và cân nhắc tư vấn chuyên môn.";
+                            recs = [
+                                "Theo dõi triệu chứng trong 2 tuần",
+                                "Tăng cường hoạt động thể chất và kết nối xã hội",
+                                "Cân nhắc tham khảo ý kiến bác sĩ gia đình",
+                            ];
+                            nextAction = "monitor";
+                        } else if (score <= 14) {
+                            levelKey = "moderate";
+                            levelLabel = "VỪA PHẢI";
+                            title =
+                                "Trầm cảm mức độ vừa phải — Mốc cắt lâm sàng";
+                            desc =
+                                "Điểm số ở mốc cắt lâm sàng, gợi ý cần được đánh giá thêm bởi chuyên gia. Không nên tự điều trị.";
+                            recs = [
+                                "Nên gặp bác sĩ hoặc nhà tâm lý học lâm sàng",
+                                "Không tự ý dùng thuốc mà không có chỉ định",
+                                "Chia sẻ với người thân đáng tin cậy",
+                                "Tìm phòng khám sức khỏe tâm thần gần nhất",
+                            ];
+                            nextAction = "consult";
+                        } else if (score <= 19) {
+                            levelKey = "severe";
+                            levelLabel = "NẶNG VỪA";
+                            title = "Trầm cảm mức độ nặng vừa";
+                            desc =
+                                "Kết quả gợi ý triệu chứng trầm cảm tương đối nặng, cần đánh giá lâm sàng sớm trong tuần này.";
+                            recs = [
+                                "Nên gặp bác sĩ tâm thần trong tuần này",
+                                "Thông báo ngay cho người thân đáng tin cậy",
+                                "Gọi 1900 9095 nếu cần hỗ trợ khẩn cấp",
+                            ];
+                            nextAction = "urgent";
+                        } else {
+                            levelKey = "severe";
+                            levelLabel = "NẶNG";
+                            title = "Trầm cảm mức độ nặng";
+                            desc =
+                                "Điểm số ở mức nặng. Cần liên hệ với chuyên gia y tế ngay hôm nay, không trì hoãn.";
+                            recs = [
+                                "Liên hệ bác sĩ tâm thần ngay hôm nay",
+                                "Không nên một mình trong lúc này — nhờ người thân ở cùng",
+                                "Gọi 1900 9095 ngay nếu có ý nghĩ tự làm hại bản thân",
+                            ];
+                            nextAction = "emergency";
+                        }
+                        return {
+                            levelKey,
+                            levelLabel,
+                            title,
+                            desc,
+                            recs,
+                            nextAction,
+                            hasCrisis,
+                        };
+                    },
+                    ranges: [
+                        {
+                            label: "Không/Tối thiểu (0–4)",
+                            pct: 18,
+                            color: "#16a34a",
+                        },
+                        { label: "Nhẹ (5–9)", pct: 19, color: "#84cc16" },
+                        { label: "Vừa (10–14)", pct: 18, color: "#f59e0b" },
+                        {
+                            label: "Nặng vừa (15–19)",
+                            pct: 19,
+                            color: "#ea580c",
+                        },
+                        { label: "Nặng (20–27)", pct: 26, color: "#dc2626" },
+                    ],
+                },
 
-// ════════════════════════════════════════════════════════════════
-//  DỮ LIỆU 5 THANG ĐO LÂM SÀNG — CHÍNH XÁC THEO TÀI LIỆU Y KHOA
-// ════════════════════════════════════════════════════════════════
-const SCALES = {
-  // ── 1. PSS-14 ────────────────────────────────────────────────
-  pss14: {
-    id: 'pss14',
-    name: 'PSS-14',
-    title: 'Thang Đo Cảm Nhận Căng Thẳng (PSS-14)',
-    reference: 'Cohen, S., Kamarck, T., & Mermelstein, R. (1983). A Global Measure of Perceived Stress. Journal of Health and Social Behavior, 24(4), 385–396.',
-    timeframe: '1 tháng gần nhất',
-    instruction: 'Hãy chỉ ra mức độ thường xuyên bạn cảm thấy hoặc suy nghĩ theo cách sau đây trong <strong>1 tháng gần nhất</strong>:',
-    optionType: 'frequency5',
-    options: [
-      { label: 'Chưa bao giờ', value: 0 },
-      { label: 'Hầu như không bao giờ', value: 1 },
-      { label: 'Thỉnh thoảng', value: 2 },
-      { label: 'Khá thường xuyên', value: 3 },
-      { label: 'Rất thường xuyên', value: 4 },
-    ],
-    reversedIdx: [3, 4, 6, 7, 10, 11, 13],
-    questions: [
-      { text: 'Bạn có thường xuyên bị buồn phiền/khó chịu vì những điều xảy ra bất ngờ không?' },
-      { text: 'Bạn có thường xuyên cảm thấy mình không thể kiểm soát được những việc quan trọng trong cuộc sống?' },
-      { text: 'Bạn có thường xuyên cảm thấy bồn chồn, lo lắng và căng thẳng?' },
-      { text: 'Bạn có thường xuyên cảm thấy tự tin vào khả năng xử lý các vấn đề cá nhân của mình không?', reversed: true },
-      { text: 'Bạn có thường xuyên cảm thấy mọi việc đang diễn ra theo đúng ý mình?', reversed: true },
-      { text: 'Bạn có thường xuyên cảm thấy mình không thể đương đầu với tất cả những việc mà mình phải làm?' },
-      { text: 'Bạn có thường xuyên cảm thấy mình có khả năng kiểm soát những điều gây kích động/bực bội trong cuộc sống?', reversed: true },
-      { text: 'Bạn có thường xuyên cảm thấy mình đang làm chủ mọi việc (ở đỉnh cao phong độ)?', reversed: true },
-      { text: 'Bạn có thường xuyên tức giận vì những việc xảy ra nằm ngoài tầm kiểm soát của mình?' },
-      { text: 'Bạn có thường xuyên cảm thấy các khó khăn đang chồng chất đến mức bạn không thể vượt qua được?' },
-      { text: 'Bạn có thường xuyên thấy mình hay nghĩ về những việc mình cần phải hoàn thành?', reversed: true },
-      { text: 'Bạn có thường xuyên thấy mình có khả năng kiểm soát cách bản thân sử dụng thời gian?', reversed: true },
-      { text: 'Bạn có thường xuyên cảm thấy những chuyển biến xấu trong cuộc sống quá nhiều khiến bạn không thể chịu đựng nổi?' },
-      { text: 'Bạn có thường xuyên cảm thấy mình có thể vượt qua mọi tình huống khó khăn trong cuộc sống?', reversed: true },
-    ],
-    score(answers) {
-      let total = 0;
-      answers.forEach((a, i) => {
-        const v = this.options[a].value;
-        total += this.reversedIdx.includes(i) ? (4 - v) : v;
-      });
-      return total;
-    },
-    maxScore: 56,
-    interpret(score) {
-      if (score <= 18) return {
-        levelKey: 'normal', levelLabel: 'THẤP',
-        title: 'Mức căng thẳng thấp',
-        desc: 'Điểm số cho thấy bạn đang kiểm soát tốt các áp lực trong cuộc sống. Mức stress trong giới hạn bình thường.',
-        recs: [
-          'Duy trì các thói quen sức khỏe tích cực hiện tại',
-          'Tiếp tục thực hành kỹ thuật quản lý stress phòng ngừa như thể dục, thiền định',
-          'Kiểm tra định kỳ mỗi 3–6 tháng',
-        ],
-        nextAction: 'monitor',
-      };
-      if (score <= 37) return {
-        levelKey: 'moderate', levelLabel: 'TRUNG BÌNH',
-        title: 'Mức căng thẳng trung bình',
-        desc: 'Điểm số cho thấy bạn đang chịu một mức độ căng thẳng đáng kể. Đây là thời điểm phù hợp để tìm kiếm hỗ trợ và điều chỉnh lối sống.',
-        recs: [
-          'Cân nhắc gặp chuyên gia tâm lý để được tư vấn trực tiếp',
-          'Tìm hiểu và thực hành kỹ thuật thư giãn có hướng dẫn (thở sâu, thư giãn cơ tiến bộ)',
-          'Đánh giá và điều chỉnh khối lượng công việc hoặc học tập',
-          'Tăng cường hỗ trợ xã hội từ người thân, bạn bè đáng tin cậy',
-        ],
-        nextAction: 'consult',
-      };
-      return {
-        levelKey: 'severe', levelLabel: 'CAO',
-        title: 'Mức căng thẳng cao — Quá tải nghiêm trọng',
-        desc: 'Điểm số ở mức cao, cho thấy tình trạng căng thẳng mãn tính có thể ảnh hưởng nghiêm trọng đến sức khỏe thể chất và tinh thần. Cần được hỗ trợ chuyên môn.',
-        recs: [
-          'Nên gặp bác sĩ tâm thần hoặc nhà tâm lý học lâm sàng sớm nhất có thể',
-          'Không nên trì hoãn việc tìm kiếm hỗ trợ chuyên môn',
-          'Thông báo cho người thân đáng tin cậy về tình trạng của bạn',
-          'Gọi đường dây hỗ trợ 1900 9095 nếu cần tư vấn khẩn cấp',
-        ],
-        nextAction: 'urgent',
-      };
-    },
-    ranges: [
-      { label: 'Thấp (0–18)', pct: 32, color: '#16a34a' },
-      { label: 'Trung bình (19–37)', pct: 35, color: '#f59e0b' },
-      { label: 'Cao (38–56)', pct: 33, color: '#dc2626' },
-    ],
-  },
-  
-  // ── 2. PHQ-9 ─────────────────────────────────────────────────
-  phq9: {
-    id: 'phq9',
-    name: 'PHQ-9',
-    title: 'Bảng Kiểm Sàng Lọc Trầm Cảm (PHQ-9)',
-    reference: 'Kroenke, K., Spitzer, R. L., & Williams, J. B. W. (2001). The PHQ-9: Validity of a Brief Depression Severity Measure. Journal of General Internal Medicine, 16(9), 606–613.',
-    timeframe: '2 tuần gần nhất',
-    instruction: 'Trong <strong>2 tuần gần nhất</strong>, bạn có bị làm phiền bởi các vấn đề sau không? Hãy chọn mức độ phù hợp nhất:',
-    optionType: 'frequency4',
-    options: [
-      { label: 'Không ngày nào', value: 0 },
-      { label: 'Vài ngày', value: 1 },
-      { label: 'Hơn một nửa số ngày', value: 2 },
-      { label: 'Gần như mọi ngày', value: 3 },
-    ],
-    reversedIdx: [],
-    questions: [
-      { text: 'Ít có hứng thú hoặc niềm vui khi làm các việc hàng ngày.' },
-      { text: 'Cảm thấy chán nản, trầm uất, hoặc tuyệt vọng.' },
-      { text: 'Khó ngủ, ngủ không sâu giấc, hoặc ngủ quá nhiều.' },
-      { text: 'Cảm thấy mệt mỏi hoặc có ít năng lượng.' },
-      { text: 'Ăn không ngon miệng hoặc ăn quá nhiều.' },
-      { text: 'Cảm thấy thất vọng về bản thân — hoặc cảm thấy mình là người thất bại, làm cho bản thân hoặc gia đình bị thất vọng.' },
-      { text: 'Gặp khó khăn trong việc tập trung vào mọi việc, chẳng hạn như khi đọc báo hoặc xem tivi.' },
-      { text: 'Di chuyển hoặc nói năng chậm chạp đến mức người khác có thể nhận thấy. Hoặc ngược lại, bồn chồn, nhấp nhổm đến mức đi lại nhiều hơn bình thường.' },
-      { text: 'Có suy nghĩ rằng thà mình chết đi còn hơn, hoặc muốn tự làm tổn thương bản thân bằng cách nào đó.', isCrisis: true },
-    ],
-    score(answers) {
-      return answers.reduce((s, a) => s + this.options[a].value, 0);
-    },
-    maxScore: 27,
-    interpret(score, answers) {
-      const hasCrisis = answers[8] > 0; 
-      let levelKey, levelLabel, title, desc, recs, nextAction;
-      
-      if (score <= 4) {
-        levelKey = 'normal'; levelLabel = 'KHÔNG CÓ / TỐI THIỂU';
-        title = 'Không có triệu chứng trầm cảm đáng kể';
-        desc = 'Điểm số không gợi ý có triệu chứng trầm cảm đáng kể. Tiếp tục duy trì lối sống lành mạnh.';
-        recs = ['Duy trì các hoạt động xã hội và thể chất','Ngủ đủ giấc, ăn uống điều độ','Kiểm tra định kỳ khi cần thiết'];
-        nextAction = 'monitor';
-      } else if (score <= 9) {
-        levelKey = 'mild'; levelLabel = 'NHẸ';
-        title = 'Trầm cảm mức độ nhẹ';
-        desc = 'Điểm số gợi ý có một số triệu chứng trầm cảm nhẹ. Nên theo dõi và cân nhắc tư vấn chuyên môn.';
-        recs = ['Theo dõi triệu chứng trong 2 tuần','Tăng cường hoạt động thể chất và kết nối xã hội','Cân nhắc tham khảo ý kiến bác sĩ gia đình'];
-        nextAction = 'monitor';
-      } else if (score <= 14) {
-        levelKey = 'moderate'; levelLabel = 'VỪA PHẢI';
-        title = 'Trầm cảm mức độ vừa phải — Mốc cắt lâm sàng';
-        desc = 'Điểm số ở mốc cắt lâm sàng, gợi ý cần được đánh giá thêm bởi chuyên gia. Không nên tự điều trị.';
-        recs = ['Nên gặp bác sĩ hoặc nhà tâm lý học lâm sàng','Không tự ý dùng thuốc mà không có chỉ định','Chia sẻ với người thân đáng tin cậy','Tìm phòng khám sức khỏe tâm thần gần nhất'];
-        nextAction = 'consult';
-      } else if (score <= 19) {
-        levelKey = 'severe'; levelLabel = 'NẶNG VỪA';
-        title = 'Trầm cảm mức độ nặng vừa';
-        desc = 'Kết quả gợi ý triệu chứng trầm cảm tương đối nặng, cần đánh giá lâm sàng sớm trong tuần này.';
-        recs = ['Nên gặp bác sĩ tâm thần trong tuần này','Thông báo ngay cho người thân đáng tin cậy','Gọi 1900 9095 nếu cần hỗ trợ khẩn cấp'];
-        nextAction = 'urgent';
-      } else {
-        levelKey = 'severe'; levelLabel = 'NẶNG';
-        title = 'Trầm cảm mức độ nặng';
-        desc = 'Điểm số ở mức nặng. Cần liên hệ với chuyên gia y tế ngay hôm nay, không trì hoãn.';
-        recs = ['Liên hệ bác sĩ tâm thần ngay hôm nay','Không nên một mình trong lúc này — nhờ người thân ở cùng','Gọi 1900 9095 ngay nếu có ý nghĩ tự làm hại bản thân'];
-        nextAction = 'emergency';
-      }
-      return { levelKey, levelLabel, title, desc, recs, nextAction, hasCrisis };
-    },
-    ranges: [
-      { label: 'Không/Tối thiểu (0–4)', pct: 18, color: '#16a34a' },
-      { label: 'Nhẹ (5–9)', pct: 19, color: '#84cc16' },
-      { label: 'Vừa (10–14)', pct: 18, color: '#f59e0b' },
-      { label: 'Nặng vừa (15–19)', pct: 19, color: '#ea580c' },
-      { label: 'Nặng (20–27)', pct: 26, color: '#dc2626' },
-    ],
-  },
-  
-  // ── 3. GAD-7 ─────────────────────────────────────────────────
-  gad7: {
-    id: 'gad7',
-    name: 'GAD-7',
-    title: 'Thang Đo Rối Loạn Lo Âu Lan Tỏa (GAD-7)',
-    reference: 'Spitzer, R. L., Kroenke, K., Williams, J. B. W., & Löwe, B. (2006). A Brief Measure for Assessing Generalized Anxiety Disorder: The GAD-7. Archives of Internal Medicine, 166(10), 1092–1097.',
-    timeframe: '2 tuần gần nhất',
-    instruction: 'Trong <strong>2 tuần gần nhất</strong>, bạn có bị làm phiền bởi các vấn đề sau không?',
-    optionType: 'frequency4',
-    options: [
-      { label: 'Không ngày nào', value: 0 },
-      { label: 'Vài ngày', value: 1 },
-      { label: 'Hơn một nửa số ngày', value: 2 },
-      { label: 'Gần như mọi ngày', value: 3 },
-    ],
-    reversedIdx: [],
-    questions: [
-      { text: 'Cảm thấy bồn chồn, lo lắng, hoặc căng thẳng thần kinh.' },
-      { text: 'Không thể ngăn chặn hoặc kiểm soát được sự lo lắng.' },
-      { text: 'Lo lắng quá mức về nhiều thứ khác nhau.' },
-      { text: 'Gặp khó khăn trong việc thư giãn.' },
-      { text: 'Thần kinh căng thẳng đến mức không thể ngồi yên (nhấp nhổm, bứt rứt).' },
-      { text: 'Dễ bị cáu gắt hoặc bực mình.' },
-      { text: 'Cảm thấy sợ hãi như thể có điều gì đó khủng khiếp sắp xảy ra.' },
-    ],
-    score(answers) {
-      return answers.reduce((s, a) => s + this.options[a].value, 0);
-    },
-    maxScore: 21,
-    interpret(score) {
-      if (score <= 4) return {
-        levelKey:'normal', levelLabel:'TỐI THIỂU',
-        title:'Lo âu ở mức tối thiểu / Bình thường',
-        desc:'Kết quả không gợi ý lo âu đáng kể. Tiếp tục duy trì sức khỏe tâm thần tốt.',
-        recs:['Tiếp tục duy trì thói quen sức khỏe hiện tại','Thực hành kỹ thuật thư giãn phòng ngừa'],
-        nextAction:'monitor',
-      };
-      if (score <= 9) return {
-        levelKey:'mild', levelLabel:'NHẸ',
-        title:'Lo âu mức độ nhẹ',
-        desc:'Có một số triệu chứng lo âu nhẹ. Cân nhắc các biện pháp tự chăm sóc và theo dõi.',
-        recs:['Thực hành kỹ thuật thở sâu và thiền định','Giảm thiểu caffeine và rượu bia','Duy trì vận động thể chất đều đặn','Cân nhắc tư vấn nếu triệu chứng kéo dài hơn 2 tuần'],
-        nextAction:'monitor',
-      };
-      if (score <= 14) return {
-        levelKey:'moderate', levelLabel:'VỪA PHẢI',
-        title:'Lo âu mức độ vừa phải — Mốc cắt sàng lọc',
-        desc:'Mức lo âu vừa phải, đây là mốc cắt sàng lọc tối ưu để can thiệp chuyên môn. Nên được đánh giá bởi chuyên gia.',
-        recs:['Nên tham khảo bác sĩ hoặc nhà tâm lý học lâm sàng','Tìm hiểu về liệu pháp nhận thức hành vi (CBT) — hiệu quả cao với lo âu','Trao đổi với người thân về những lo lắng của bạn'],
-        nextAction:'consult',
-      };
-      return {
-        levelKey:'severe', levelLabel:'NẶNG',
-        title:'Lo âu mức độ nặng',
-        desc:'Mức lo âu cao, có thể gây ảnh hưởng nghiêm trọng đến cuộc sống hàng ngày. Cần được đánh giá và điều trị chuyên môn.',
-        recs:['Cần gặp bác sĩ tâm thần để được đánh giá và điều trị','Lo âu nặng có thể điều trị hiệu quả — đừng trì hoãn','Gọi 1900 9095 nếu cảm thấy không thể kiểm soát'],
-        nextAction:'urgent',
-      };
-    },
-    ranges: [
-      { label: 'Tối thiểu (0–4)', pct: 24, color: '#16a34a' },
-      { label: 'Nhẹ (5–9)', pct: 24, color: '#84cc16' },
-      { label: 'Vừa (10–14)', pct: 24, color: '#f59e0b' },
-      { label: 'Nặng (15–21)', pct: 28, color: '#dc2626' },
-    ],
-  },
-  
-  // ── 4. DASS-21 ───────────────────────────────────────────────
-  dass21: {
-    id: 'dass21',
-    name: 'DASS-21',
-    title: 'Thang Đo Trầm Cảm – Lo Âu – Căng Thẳng (DASS-21)',
-    reference: 'Lovibond, S. H., & Lovibond, P. F. (1995). Manual for the Depression Anxiety Stress Scales. Sydney: Psychology Foundation of Australia.',
-    timeframe: '1 tuần qua',
-    instruction: 'Xin đọc từng câu và đánh giá mức độ nó áp dụng cho bạn trong <strong>tuần vừa qua</strong>. Không có câu trả lời đúng hay sai.',
-    optionType: 'dass',
-    options: [
-      { label: 'Không đúng chút nào', value: 0 },
-      { label: 'Đúng một phần', value: 1 },
-      { label: 'Đúng phần nhiều', value: 2 },
-      { label: 'Đúng hoàn toàn', value: 3 },
-    ],
-    reversedIdx: [],
-    questions: [
-      { text: 'Tôi thấy khó mà thư giãn được.', sub: 'S' },
-      { text: 'Tôi bị khô miệng.', sub: 'A' },
-      { text: 'Tôi chẳng thấy có chút cảm xúc tích cực nào cả.', sub: 'D' },
-      { text: 'Tôi bị rối loạn nhịp thở (thở gấp, khó thở dù chẳng làm việc gì nặng).', sub: 'A' },
-      { text: 'Tôi thấy khó bắt tay vào công việc.', sub: 'D' },
-      { text: 'Tôi hay phản ứng thái quá trước các tình huống.', sub: 'S' },
-      { text: 'Tôi bị ra mồ hôi tay hoặc run rẩy.', sub: 'A' },
-      { text: 'Tôi thấy mình đang tiêu hao quá nhiều năng lượng thần kinh.', sub: 'S' },
-      { text: 'Tôi lo lắng về những tình huống có thể làm tôi hoảng sợ hoặc biến thành trò cười.', sub: 'A' },
-      { text: 'Tôi cảm thấy mình chẳng có gì để mong đợi ở tương lai cả.', sub: 'D' },
-      { text: 'Tôi thấy mình dễ bị kích động.', sub: 'S' },
-      { text: 'Tôi thấy khó mà đứng ngồi yên được (bồn chồn).', sub: 'S' },
-      { text: 'Tôi cảm thấy buồn sầu và u uất.', sub: 'D' },
-      { text: 'Tôi không chịu được những việc làm tôi mất kiên nhẫn.', sub: 'S' },
-      { text: 'Tôi cảm thấy mình gần như bị hoảng loạn.', sub: 'A' },
-      { text: 'Tôi không thấy hào hứng với bất kỳ điều gì nữa.', sub: 'D' },
-      { text: 'Tôi cảm thấy mình không có giá trị gì cả.', sub: 'D' },
-      { text: 'Tôi thấy mình khá dễ bị tổn thương.', sub: 'S' },
-      { text: 'Tôi nghe thấy tiếng tim đập dù không gắng sức.', sub: 'A' },
-      { text: 'Tôi cảm thấy sợ hãi vô cớ.', sub: 'A' },
-      { text: 'Tôi cảm thấy cuộc sống này chẳng còn ý nghĩa gì nữa.', sub: 'D' },
-    ],
-    score(answers) {
-      let D = 0, A = 0, S = 0;
-      this.questions.forEach((q, i) => {
-        const v = this.options[answers[i]].value;
-        if (q.sub === 'D') D += v;
-        else if (q.sub === 'A') A += v;
-        else S += v;
-      });
-      return { D: D * 2, A: A * 2, S: S * 2 };
-    },
-    maxScore: 42,
-    classifyD(score) {
-      if (score <= 9)  return { key:'normal',     label:'Bình Thường' };
-      if (score <= 13) return { key:'mild',        label:'Nhẹ'        };
-      if (score <= 20) return { key:'moderate',    label:'Vừa'        };
-      if (score <= 27) return { key:'severe',      label:'Nặng'       };
-      return                   { key:'very-severe', label:'Rất Nặng'  };
-    },
-    classifyA(score) {
-      if (score <= 7)  return { key:'normal',     label:'Bình Thường' };
-      if (score <= 9)  return { key:'mild',        label:'Nhẹ'        };
-      if (score <= 14) return { key:'moderate',    label:'Vừa'        };
-      if (score <= 19) return { key:'severe',      label:'Nặng'       };
-      return                   { key:'very-severe', label:'Rất Nặng'  };
-    },
-    classifyS(score) {
-      if (score <= 14) return { key:'normal',     label:'Bình Thường' };
-      if (score <= 18) return { key:'mild',        label:'Nhẹ'        };
-      if (score <= 25) return { key:'moderate',    label:'Vừa'        };
-      if (score <= 33) return { key:'severe',      label:'Nặng'       };
-      return                   { key:'very-severe', label:'Rất Nặng'  };
-    },
-    interpret(scores) {
-      const dClass = this.classifyD(scores.D);
-      const aClass = this.classifyA(scores.A);
-      const sClass = this.classifyS(scores.S);
-      const order  = ['normal','mild','moderate','severe','very-severe'];
-      const worstKey = [dClass.key, aClass.key, sClass.key]
-        .reduce((a,b) => order.indexOf(b) > order.indexOf(a) ? b : a);
-      const levelLabelMap = { normal:'BÌNH THƯỜNG', mild:'NHẸ', moderate:'VỪA', severe:'NẶNG', 'very-severe':'RẤT NẶNG' };
-      return {
-        levelKey: worstKey,
-        levelLabel: levelLabelMap[worstKey],
-        dClass, aClass, sClass,
-        recs: worstKey === 'normal'
-          ? ['Tiếp tục duy trì lối sống tích cực','Kiểm tra định kỳ khi cần thiết']
-          : worstKey === 'mild'
-          ? ['Cân nhắc tham khảo chuyên gia tâm lý','Thực hành kỹ thuật quản lý stress','Duy trì hoạt động xã hội và thể chất']
-          : ['Nên gặp bác sĩ tâm thần hoặc nhà tâm lý học lâm sàng','Đánh giá chuyên sâu để xác định hướng điều trị phù hợp','Tìm phòng khám sức khỏe tâm thần gần nhất','Gọi 1900 9095 nếu cần hỗ trợ khẩn cấp'],
-        nextAction: worstKey === 'normal' ? 'monitor' : worstKey === 'mild' ? 'consult' : 'urgent',
-      };
-    },
-    ranges: [], 
-  },
-  
-  // ── 5. ISI ───────────────────────────────────────────────────
-  isi: {
-    id: 'isi',
-    name: 'ISI',
-    title: 'Chỉ Số Mức Độ Nghiêm Trọng Của Bệnh Mất Ngủ (ISI)',
-    reference: 'Morin, C. M., Belleville, G., Bélanger, L., & Ivers, H. (2011). The Insomnia Severity Index: Psychometric Indicators to Detect Insomnia Cases and Evaluate Treatment Response. SLEEP, 34(5), 601–608.',
-    timeframe: '2 tuần gần nhất',
-    instruction: 'Đánh giá mức độ nghiêm trọng của các vấn đề giấc ngủ dưới đây trong <strong>2 tuần gần nhất</strong>:',
-    optionType: 'isi_scale',
-    reversedIdx: [],
-    questions: [
-      {
-        text: 'Mức độ khó khăn khi bắt đầu đi vào giấc ngủ?',
-        opts: ['Không (0)', 'Nhẹ (1)', 'Vừa (2)', 'Nặng (3)', 'Rất nặng (4)']
-      },
-      {
-        text: 'Mức độ khó khăn khi duy trì giấc ngủ (hay thức giấc giữa chừng)?',
-        opts: ['Không (0)', 'Nhẹ (1)', 'Vừa (2)', 'Nặng (3)', 'Rất nặng (4)']
-      },
-      {
-        text: 'Vấn đề bị thức dậy quá sớm vào buổi sáng?',
-        opts: ['Không (0)', 'Nhẹ (1)', 'Vừa (2)', 'Nặng (3)', 'Rất nặng (4)']
-      },
-      {
-        text: 'Mức độ thỏa mãn với kiểu ngủ hiện tại của bản thân?',
-        opts: ['Rất thỏa (0)', 'Thỏa (1)', 'Trung bình (2)', 'Không thỏa (3)', 'Rất không thỏa (4)']
-      },
-      {
-        text: 'Mức độ ảnh hưởng của tình trạng thiếu ngủ đến hoạt động ban ngày (mệt mỏi, tập trung kém, làm việc kém...)?',
-        opts: ['Không ảnh hưởng (0)', 'Ít (1)', 'Vừa (2)', 'Nhiều (3)', 'Rất nhiều (4)']
-      },
-      {
-        text: 'Mức độ những người xung quanh nhận thấy bạn có vấn đề về giấc ngủ?',
-        opts: ['Không chút nào (0)', 'Ít (1)', 'Vừa (2)', 'Nhiều (3)', 'Rất nhiều (4)']
-      },
-      {
-        text: 'Mức độ lo lắng, phiền muộn do chứng mất ngủ gây ra?',
-        opts: ['Không chút nào (0)', 'Ít (1)', 'Vừa (2)', 'Nhiều (3)', 'Rất nhiều (4)']
-      },
-    ],
-    score(answers) {
-      return answers.reduce((s, a) => s + a, 0); 
-    },
-    maxScore: 28,
-    interpret(score) {
-      if (score <= 7) return {
-        levelKey:'normal', levelLabel:'KHÔNG ĐÁNG KỂ',
-        title:'Không có biểu hiện mất ngủ lâm sàng đáng kể',
-        desc:'Giấc ngủ của bạn nhìn chung ở mức bình thường. Tiếp tục duy trì thói quen ngủ lành mạnh.',
-        recs:['Duy trì giờ ngủ và thức đều đặn','Hạn chế màn hình điện tử 30–60 phút trước khi ngủ','Tạo môi trường phòng ngủ tối và mát'],
-        nextAction:'monitor',
-      };
-      if (score <= 14) return {
-        levelKey:'mild', levelLabel:'DƯỚI NGƯỠNG LÂM SÀNG',
-        title:'Mất ngủ dưới ngưỡng lâm sàng (mức độ nhẹ)',
-        desc:'Có một số vấn đề về giấc ngủ nhưng chưa đạt ngưỡng lâm sàng. Lưu ý: điểm từ 10+ là nguy cơ cao.',
-        recs:['Cải thiện vệ sinh giấc ngủ (sleep hygiene)','Thực hành kỹ thuật thư giãn trước khi ngủ','Hạn chế caffeine sau 14 giờ','Cân nhắc gặp bác sĩ nếu tình trạng kéo dài hơn 1 tháng'],
-        nextAction:'monitor',
-      };
-      if (score <= 21) return {
-        levelKey:'moderate', levelLabel:'TRUNG BÌNH',
-        title:'Mất ngủ lâm sàng mức độ trung bình',
-        desc:'Tình trạng mất ngủ ở mức lâm sàng trung bình. Cần được đánh giá và can thiệp chuyên môn.',
-        recs:['Nên gặp bác sĩ để được đánh giá và điều trị','Liệu pháp nhận thức hành vi cho chứng mất ngủ (CBT-I) được khuyến nghị hàng đầu','Tránh tự ý dùng thuốc ngủ không kê đơn'],
-        nextAction:'consult',
-      };
-      return {
-        levelKey:'severe', levelLabel:'NGHIÊM TRỌNG',
-        title:'Mất ngủ lâm sàng mức độ nghiêm trọng',
-        desc:'Tình trạng mất ngủ nghiêm trọng, cần điều trị chuyên sâu. Mất ngủ mạn tính làm tăng nguy cơ trầm cảm và các bệnh lý khác.',
-        recs:['Cần gặp bác sĩ tâm thần hoặc chuyên gia giấc ngủ','CBT-I (liệu pháp nhận thức hành vi cho mất ngủ) hiệu quả cao hơn thuốc về lâu dài','Đánh giá loại trừ các nguyên nhân bệnh lý tiềm ẩn'],
-        nextAction:'urgent',
-      };
-    },
-    ranges: [
-      { label: 'Không đáng kể (0–7)', pct: 28, color: '#16a34a' },
-      { label: 'Nhẹ (8–14)', pct: 25, color: '#f59e0b' },
-      { label: 'Trung bình (15–21)', pct: 25, color: '#ea580c' },
-      { label: 'Nghiêm trọng (22–28)', pct: 22, color: '#dc2626' },
-    ],
-  },
-};
+                // ── 3. GAD-7 ─────────────────────────────────────────────────
+                gad7: {
+                    id: "gad7",
+                    name: "GAD-7",
+                    title: "Thang Đo Rối Loạn Lo Âu Lan Tỏa (GAD-7)",
+                    reference:
+                        "Spitzer, R. L., Kroenke, K., Williams, J. B. W., & Löwe, B. (2006). A Brief Measure for Assessing Generalized Anxiety Disorder: The GAD-7. Archives of Internal Medicine, 166(10), 1092–1097.",
+                    timeframe: "2 tuần gần nhất",
+                    instruction:
+                        "Trong <strong>2 tuần gần nhất</strong>, bạn có bị làm phiền bởi các vấn đề sau không?",
+                    optionType: "frequency4",
+                    options: [
+                        { label: "Không ngày nào", value: 0 },
+                        { label: "Vài ngày", value: 1 },
+                        { label: "Hơn một nửa số ngày", value: 2 },
+                        { label: "Gần như mọi ngày", value: 3 },
+                    ],
+                    reversedIdx: [],
+                    questions: [
+                        {
+                            text: "Cảm thấy bồn chồn, lo lắng, hoặc căng thẳng thần kinh.",
+                        },
+                        {
+                            text: "Không thể ngăn chặn hoặc kiểm soát được sự lo lắng.",
+                        },
+                        { text: "Lo lắng quá mức về nhiều thứ khác nhau." },
+                        { text: "Gặp khó khăn trong việc thư giãn." },
+                        {
+                            text: "Thần kinh căng thẳng đến mức không thể ngồi yên (nhấp nhổm, bứt rứt).",
+                        },
+                        { text: "Dễ bị cáu gắt hoặc bực mình." },
+                        {
+                            text: "Cảm thấy sợ hãi như thể có điều gì đó khủng khiếp sắp xảy ra.",
+                        },
+                    ],
+                    score(answers) {
+                        return answers.reduce(
+                            (s, a) => s + this.options[a].value,
+                            0,
+                        );
+                    },
+                    maxScore: 21,
+                    interpret(score) {
+                        if (score <= 4)
+                            return {
+                                levelKey: "normal",
+                                levelLabel: "TỐI THIỂU",
+                                title: "Lo âu ở mức tối thiểu / Bình thường",
+                                desc: "Kết quả không gợi ý lo âu đáng kể. Tiếp tục duy trì sức khỏe tâm thần tốt.",
+                                recs: [
+                                    "Tiếp tục duy trì thói quen sức khỏe hiện tại",
+                                    "Thực hành kỹ thuật thư giãn phòng ngừa",
+                                ],
+                                nextAction: "monitor",
+                            };
+                        if (score <= 9)
+                            return {
+                                levelKey: "mild",
+                                levelLabel: "NHẸ",
+                                title: "Lo âu mức độ nhẹ",
+                                desc: "Có một số triệu chứng lo âu nhẹ. Cân nhắc các biện pháp tự chăm sóc và theo dõi.",
+                                recs: [
+                                    "Thực hành kỹ thuật thở sâu và thiền định",
+                                    "Giảm thiểu caffeine và rượu bia",
+                                    "Duy trì vận động thể chất đều đặn",
+                                    "Cân nhắc tư vấn nếu triệu chứng kéo dài hơn 2 tuần",
+                                ],
+                                nextAction: "monitor",
+                            };
+                        if (score <= 14)
+                            return {
+                                levelKey: "moderate",
+                                levelLabel: "VỪA PHẢI",
+                                title: "Lo âu mức độ vừa phải — Mốc cắt sàng lọc",
+                                desc: "Mức lo âu vừa phải, đây là mốc cắt sàng lọc tối ưu để can thiệp chuyên môn. Nên được đánh giá bởi chuyên gia.",
+                                recs: [
+                                    "Nên tham khảo bác sĩ hoặc nhà tâm lý học lâm sàng",
+                                    "Tìm hiểu về liệu pháp nhận thức hành vi (CBT) — hiệu quả cao với lo âu",
+                                    "Trao đổi với người thân về những lo lắng của bạn",
+                                ],
+                                nextAction: "consult",
+                            };
+                        return {
+                            levelKey: "severe",
+                            levelLabel: "NẶNG",
+                            title: "Lo âu mức độ nặng",
+                            desc: "Mức lo âu cao, có thể gây ảnh hưởng nghiêm trọng đến cuộc sống hàng ngày. Cần được đánh giá và điều trị chuyên môn.",
+                            recs: [
+                                "Cần gặp bác sĩ tâm thần để được đánh giá và điều trị",
+                                "Lo âu nặng có thể điều trị hiệu quả — đừng trì hoãn",
+                                "Gọi 1900 9095 nếu cảm thấy không thể kiểm soát",
+                            ],
+                            nextAction: "urgent",
+                        };
+                    },
+                    ranges: [
+                        { label: "Tối thiểu (0–4)", pct: 24, color: "#16a34a" },
+                        { label: "Nhẹ (5–9)", pct: 24, color: "#84cc16" },
+                        { label: "Vừa (10–14)", pct: 24, color: "#f59e0b" },
+                        { label: "Nặng (15–21)", pct: 28, color: "#dc2626" },
+                    ],
+                },
 
-// ════════════════════════════════════════════════════════════════
-//  TRẠNG THÁI ỨNG DỤNG
-// ════════════════════════════════════════════════════════════════
-let selectedId  = null;
-let currentScale = null;
-let answers     = [];
+                // ── 4. DASS-21 ───────────────────────────────────────────────
+                dass21: {
+                    id: "dass21",
+                    name: "DASS-21",
+                    title: "Thang Đo Trầm Cảm – Lo Âu – Căng Thẳng (DASS-21)",
+                    reference:
+                        "Lovibond, S. H., & Lovibond, P. F. (1995). Manual for the Depression Anxiety Stress Scales. Sydney: Psychology Foundation of Australia.",
+                    timeframe: "1 tuần qua",
+                    instruction:
+                        "Xin đọc từng câu và đánh giá mức độ nó áp dụng cho bạn trong <strong>tuần vừa qua</strong>. Không có câu trả lời đúng hay sai.",
+                    optionType: "dass",
+                    options: [
+                        { label: "Không đúng chút nào", value: 0 },
+                        { label: "Đúng một phần", value: 1 },
+                        { label: "Đúng phần nhiều", value: 2 },
+                        { label: "Đúng hoàn toàn", value: 3 },
+                    ],
+                    reversedIdx: [],
+                    questions: [
+                        { text: "Tôi thấy khó mà thư giãn được.", sub: "S" },
+                        { text: "Tôi bị khô miệng.", sub: "A" },
+                        {
+                            text: "Tôi chẳng thấy có chút cảm xúc tích cực nào cả.",
+                            sub: "D",
+                        },
+                        {
+                            text: "Tôi bị rối loạn nhịp thở (thở gấp, khó thở dù chẳng làm việc gì nặng).",
+                            sub: "A",
+                        },
+                        {
+                            text: "Tôi thấy khó bắt tay vào công việc.",
+                            sub: "D",
+                        },
+                        {
+                            text: "Tôi hay phản ứng thái quá trước các tình huống.",
+                            sub: "S",
+                        },
+                        {
+                            text: "Tôi bị ra mồ hôi tay hoặc run rẩy.",
+                            sub: "A",
+                        },
+                        {
+                            text: "Tôi thấy mình đang tiêu hao quá nhiều năng lượng thần kinh.",
+                            sub: "S",
+                        },
+                        {
+                            text: "Tôi lo lắng về những tình huống có thể làm tôi hoảng sợ hoặc biến thành trò cười.",
+                            sub: "A",
+                        },
+                        {
+                            text: "Tôi cảm thấy mình chẳng có gì để mong đợi ở tương lai cả.",
+                            sub: "D",
+                        },
+                        { text: "Tôi thấy mình dễ bị kích động.", sub: "S" },
+                        {
+                            text: "Tôi thấy khó mà đứng ngồi yên được (bồn chồn).",
+                            sub: "S",
+                        },
+                        { text: "Tôi cảm thấy buồn sầu và u uất.", sub: "D" },
+                        {
+                            text: "Tôi không chịu được những việc làm tôi mất kiên nhẫn.",
+                            sub: "S",
+                        },
+                        {
+                            text: "Tôi cảm thấy mình gần như bị hoảng loạn.",
+                            sub: "A",
+                        },
+                        {
+                            text: "Tôi không thấy hào hứng với bất kỳ điều gì nữa.",
+                            sub: "D",
+                        },
+                        {
+                            text: "Tôi cảm thấy mình không có giá trị gì cả.",
+                            sub: "D",
+                        },
+                        {
+                            text: "Tôi thấy mình khá dễ bị tổn thương.",
+                            sub: "S",
+                        },
+                        {
+                            text: "Tôi nghe thấy tiếng tim đập dù không gắng sức.",
+                            sub: "A",
+                        },
+                        { text: "Tôi cảm thấy sợ hãi vô cớ.", sub: "A" },
+                        {
+                            text: "Tôi cảm thấy cuộc sống này chẳng còn ý nghĩa gì nữa.",
+                            sub: "D",
+                        },
+                    ],
+                    score(answers) {
+                        let D = 0,
+                            A = 0,
+                            S = 0;
+                        this.questions.forEach((q, i) => {
+                            const v = this.options[answers[i]].value;
+                            if (q.sub === "D") D += v;
+                            else if (q.sub === "A") A += v;
+                            else S += v;
+                        });
+                        return { D: D * 2, A: A * 2, S: S * 2 };
+                    },
+                    maxScore: 42,
+                    classifyD(score) {
+                        if (score <= 9)
+                            return { key: "normal", label: "Bình Thường" };
+                        if (score <= 13) return { key: "mild", label: "Nhẹ" };
+                        if (score <= 20)
+                            return { key: "moderate", label: "Vừa" };
+                        if (score <= 27)
+                            return { key: "severe", label: "Nặng" };
+                        return { key: "very-severe", label: "Rất Nặng" };
+                    },
+                    classifyA(score) {
+                        if (score <= 7)
+                            return { key: "normal", label: "Bình Thường" };
+                        if (score <= 9) return { key: "mild", label: "Nhẹ" };
+                        if (score <= 14)
+                            return { key: "moderate", label: "Vừa" };
+                        if (score <= 19)
+                            return { key: "severe", label: "Nặng" };
+                        return { key: "very-severe", label: "Rất Nặng" };
+                    },
+                    classifyS(score) {
+                        if (score <= 14)
+                            return { key: "normal", label: "Bình Thường" };
+                        if (score <= 18) return { key: "mild", label: "Nhẹ" };
+                        if (score <= 25)
+                            return { key: "moderate", label: "Vừa" };
+                        if (score <= 33)
+                            return { key: "severe", label: "Nặng" };
+                        return { key: "very-severe", label: "Rất Nặng" };
+                    },
+                    interpret(scores) {
+                        const dClass = this.classifyD(scores.D);
+                        const aClass = this.classifyA(scores.A);
+                        const sClass = this.classifyS(scores.S);
+                        const order = [
+                            "normal",
+                            "mild",
+                            "moderate",
+                            "severe",
+                            "very-severe",
+                        ];
+                        const worstKey = [
+                            dClass.key,
+                            aClass.key,
+                            sClass.key,
+                        ].reduce((a, b) =>
+                            order.indexOf(b) > order.indexOf(a) ? b : a,
+                        );
+                        const levelLabelMap = {
+                            normal: "BÌNH THƯỜNG",
+                            mild: "NHẸ",
+                            moderate: "VỪA",
+                            severe: "NẶNG",
+                            "very-severe": "RẤT NẶNG",
+                        };
+                        return {
+                            levelKey: worstKey,
+                            levelLabel: levelLabelMap[worstKey],
+                            dClass,
+                            aClass,
+                            sClass,
+                            recs:
+                                worstKey === "normal"
+                                    ? [
+                                          "Tiếp tục duy trì lối sống tích cực",
+                                          "Kiểm tra định kỳ khi cần thiết",
+                                      ]
+                                    : worstKey === "mild"
+                                      ? [
+                                            "Cân nhắc tham khảo chuyên gia tâm lý",
+                                            "Thực hành kỹ thuật quản lý stress",
+                                            "Duy trì hoạt động xã hội và thể chất",
+                                        ]
+                                      : [
+                                            "Nên gặp bác sĩ tâm thần hoặc nhà tâm lý học lâm sàng",
+                                            "Đánh giá chuyên sâu để xác định hướng điều trị phù hợp",
+                                            "Tìm phòng khám sức khỏe tâm thần gần nhất",
+                                            "Gọi 1900 9095 nếu cần hỗ trợ khẩn cấp",
+                                        ],
+                            nextAction:
+                                worstKey === "normal"
+                                    ? "monitor"
+                                    : worstKey === "mild"
+                                      ? "consult"
+                                      : "urgent",
+                        };
+                    },
+                    ranges: [],
+                },
 
-// ════════════════════════════════════════════════════════════════
-//  CHỌN THANG ĐO
-// ════════════════════════════════════════════════════════════════
-function selectScale(id) {
-  selectedId = id;
-  document.querySelectorAll('.scale-tile').forEach(t =>
-    t.classList.toggle('selected', t.dataset.scale === id)
-  );
-  const row = document.getElementById('start-row');
-  row.style.display = 'block';
-  document.getElementById('start-btn').textContent = `Bắt Đầu ${SCALES[id].name} →`;
-}
+                // ── 5. ISI ───────────────────────────────────────────────────
+                isi: {
+                    id: "isi",
+                    name: "ISI",
+                    title: "Chỉ Số Mức Độ Nghiêm Trọng Của Bệnh Mất Ngủ (ISI)",
+                    reference:
+                        "Morin, C. M., Belleville, G., Bélanger, L., & Ivers, H. (2011). The Insomnia Severity Index: Psychometric Indicators to Detect Insomnia Cases and Evaluate Treatment Response. SLEEP, 34(5), 601–608.",
+                    timeframe: "2 tuần gần nhất",
+                    instruction:
+                        "Đánh giá mức độ nghiêm trọng của các vấn đề giấc ngủ dưới đây trong <strong>2 tuần gần nhất</strong>:",
+                    optionType: "isi_scale",
+                    reversedIdx: [],
+                    questions: [
+                        {
+                            text: "Mức độ khó khăn khi bắt đầu đi vào giấc ngủ?",
+                            opts: [
+                                "Không (0)",
+                                "Nhẹ (1)",
+                                "Vừa (2)",
+                                "Nặng (3)",
+                                "Rất nặng (4)",
+                            ],
+                        },
+                        {
+                            text: "Mức độ khó khăn khi duy trì giấc ngủ (hay thức giấc giữa chừng)?",
+                            opts: [
+                                "Không (0)",
+                                "Nhẹ (1)",
+                                "Vừa (2)",
+                                "Nặng (3)",
+                                "Rất nặng (4)",
+                            ],
+                        },
+                        {
+                            text: "Vấn đề bị thức dậy quá sớm vào buổi sáng?",
+                            opts: [
+                                "Không (0)",
+                                "Nhẹ (1)",
+                                "Vừa (2)",
+                                "Nặng (3)",
+                                "Rất nặng (4)",
+                            ],
+                        },
+                        {
+                            text: "Mức độ thỏa mãn với kiểu ngủ hiện tại của bản thân?",
+                            opts: [
+                                "Rất thỏa (0)",
+                                "Thỏa (1)",
+                                "Trung bình (2)",
+                                "Không thỏa (3)",
+                                "Rất không thỏa (4)",
+                            ],
+                        },
+                        {
+                            text: "Mức độ ảnh hưởng của tình trạng thiếu ngủ đến hoạt động ban ngày (mệt mỏi, tập trung kém, làm việc kém...)?",
+                            opts: [
+                                "Không ảnh hưởng (0)",
+                                "Ít (1)",
+                                "Vừa (2)",
+                                "Nhiều (3)",
+                                "Rất nhiều (4)",
+                            ],
+                        },
+                        {
+                            text: "Mức độ những người xung quanh nhận thấy bạn có vấn đề về giấc ngủ?",
+                            opts: [
+                                "Không chút nào (0)",
+                                "Ít (1)",
+                                "Vừa (2)",
+                                "Nhiều (3)",
+                                "Rất nhiều (4)",
+                            ],
+                        },
+                        {
+                            text: "Mức độ lo lắng, phiền muộn do chứng mất ngủ gây ra?",
+                            opts: [
+                                "Không chút nào (0)",
+                                "Ít (1)",
+                                "Vừa (2)",
+                                "Nhiều (3)",
+                                "Rất nhiều (4)",
+                            ],
+                        },
+                    ],
+                    score(answers) {
+                        return answers.reduce((s, a) => s + a, 0);
+                    },
+                    maxScore: 28,
+                    interpret(score) {
+                        if (score <= 7)
+                            return {
+                                levelKey: "normal",
+                                levelLabel: "KHÔNG ĐÁNG KỂ",
+                                title: "Không có biểu hiện mất ngủ lâm sàng đáng kể",
+                                desc: "Giấc ngủ của bạn nhìn chung ở mức bình thường. Tiếp tục duy trì thói quen ngủ lành mạnh.",
+                                recs: [
+                                    "Duy trì giờ ngủ và thức đều đặn",
+                                    "Hạn chế màn hình điện tử 30–60 phút trước khi ngủ",
+                                    "Tạo môi trường phòng ngủ tối và mát",
+                                ],
+                                nextAction: "monitor",
+                            };
+                        if (score <= 14)
+                            return {
+                                levelKey: "mild",
+                                levelLabel: "DƯỚI NGƯỠNG LÂM SÀNG",
+                                title: "Mất ngủ dưới ngưỡng lâm sàng (mức độ nhẹ)",
+                                desc: "Có một số vấn đề về giấc ngủ nhưng chưa đạt ngưỡng lâm sàng. Lưu ý: điểm từ 10+ là nguy cơ cao.",
+                                recs: [
+                                    "Cải thiện vệ sinh giấc ngủ (sleep hygiene)",
+                                    "Thực hành kỹ thuật thư giãn trước khi ngủ",
+                                    "Hạn chế caffeine sau 14 giờ",
+                                    "Cân nhắc gặp bác sĩ nếu tình trạng kéo dài hơn 1 tháng",
+                                ],
+                                nextAction: "monitor",
+                            };
+                        if (score <= 21)
+                            return {
+                                levelKey: "moderate",
+                                levelLabel: "TRUNG BÌNH",
+                                title: "Mất ngủ lâm sàng mức độ trung bình",
+                                desc: "Tình trạng mất ngủ ở mức lâm sàng trung bình. Cần được đánh giá và can thiệp chuyên môn.",
+                                recs: [
+                                    "Nên gặp bác sĩ để được đánh giá và điều trị",
+                                    "Liệu pháp nhận thức hành vi cho chứng mất ngủ (CBT-I) được khuyến nghị hàng đầu",
+                                    "Tránh tự ý dùng thuốc ngủ không kê đơn",
+                                ],
+                                nextAction: "consult",
+                            };
+                        return {
+                            levelKey: "severe",
+                            levelLabel: "NGHIÊM TRỌNG",
+                            title: "Mất ngủ lâm sàng mức độ nghiêm trọng",
+                            desc: "Tình trạng mất ngủ nghiêm trọng, cần điều trị chuyên sâu. Mất ngủ mạn tính làm tăng nguy cơ trầm cảm và các bệnh lý khác.",
+                            recs: [
+                                "Cần gặp bác sĩ tâm thần hoặc chuyên gia giấc ngủ",
+                                "CBT-I (liệu pháp nhận thức hành vi cho mất ngủ) hiệu quả cao hơn thuốc về lâu dài",
+                                "Đánh giá loại trừ các nguyên nhân bệnh lý tiềm ẩn",
+                            ],
+                            nextAction: "urgent",
+                        };
+                    },
+                    ranges: [
+                        {
+                            label: "Không đáng kể (0–7)",
+                            pct: 28,
+                            color: "#16a34a",
+                        },
+                        { label: "Nhẹ (8–14)", pct: 25, color: "#f59e0b" },
+                        {
+                            label: "Trung bình (15–21)",
+                            pct: 25,
+                            color: "#ea580c",
+                        },
+                        {
+                            label: "Nghiêm trọng (22–28)",
+                            pct: 22,
+                            color: "#dc2626",
+                        },
+                    ],
+                },
+            };
 
-// ════════════════════════════════════════════════════════════════
-//  HIỂN THỊ CÂU HỎI
-// ════════════════════════════════════════════════════════════════
-function startAssessment() {
-  if (!selectedId) return;
-  currentScale = SCALES[selectedId];
-  answers = new Array(currentScale.questions.length).fill(null);
-  
-  document.getElementById('step-select').style.display = 'none';
-  document.getElementById('assessment-box').classList.add('visible');
-  document.getElementById('result-section').classList.remove('visible');
-  
-  document.getElementById('assess-title').textContent = currentScale.title;
-  document.getElementById('assess-desc').innerHTML =
-    `<span style="font-size:.72rem;font-weight:700;color:#FF7B8E;letter-spacing:.5px;">NGUỒN KHOA HỌC: </span>${currentScale.reference}<br><br>${currentScale.instruction}`;
-    
-  renderQuestions();
-}
+            // ════════════════════════════════════════════════════════════════
+            //  TRẠNG THÁI ỨNG DỤNG
+            // ════════════════════════════════════════════════════════════════
+            let selectedId = null;
+            let currentScale = null;
+            let answers = [];
+            let chatMessages = [];
 
-function renderQuestions() {
-  const c = currentScale;
-  const isISI   = c.id === 'isi';
-  const isDASS  = c.id === 'dass21';
-  const subColors = { D:'#3b82f6', A:'#8b5cf6', S:'#f59e0b' };
-  const subNames  = { D:'Trầm cảm', A:'Lo âu', S:'Căng thẳng' };
-  
-  document.getElementById('questions-container').innerHTML = c.questions.map((q, i) => {
-    const subBadge = isDASS
-      ? `<span class="q-subscale" style="background:${subColors[q.sub]}22;color:${subColors[q.sub]};">${subNames[q.sub]}</span>`
-      : '';
-    const crisisNote = q.isCrisis
-      ? `<div style="font-size:.72rem;color:#dc2626;font-weight:600;margin-top:.4rem;padding:.4rem .75rem;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">
+            // ════════════════════════════════════════════════════════════════
+            //  CHỌN THANG ĐO
+            // ════════════════════════════════════════════════════════════════
+            function selectScale(id) {
+                selectedId = id;
+                document
+                    .querySelectorAll(".scale-tile")
+                    .forEach((t) =>
+                        t.classList.toggle("selected", t.dataset.scale === id),
+                    );
+                const row = document.getElementById("start-row");
+                row.style.display = "block";
+                document.getElementById("start-btn").textContent =
+                    `Bắt Đầu ${SCALES[id].name} →`;
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            //  HIỂN THỊ CÂU HỎI
+            // ════════════════════════════════════════════════════════════════
+            function startAssessment() {
+                if (!selectedId) return;
+                currentScale = SCALES[selectedId];
+                answers = new Array(currentScale.questions.length).fill(null);
+
+                document.getElementById("step-select").style.display = "none";
+                document
+                    .getElementById("assessment-box")
+                    .classList.add("visible");
+                document
+                    .getElementById("result-section")
+                    .classList.remove("visible");
+
+                document.getElementById("assess-title").textContent =
+                    currentScale.title;
+                document.getElementById("assess-desc").innerHTML =
+                    `<span style="font-size:.72rem;font-weight:700;color:#FF7B8E;letter-spacing:.5px;">NGUỒN KHOA HỌC: </span>${currentScale.reference}<br><br>${currentScale.instruction}`;
+
+                renderQuestions();
+            }
+
+            function renderQuestions() {
+                const c = currentScale;
+                const isISI = c.id === "isi";
+                const isDASS = c.id === "dass21";
+                const subColors = { D: "#3b82f6", A: "#8b5cf6", S: "#f59e0b" };
+                const subNames = { D: "Trầm cảm", A: "Lo âu", S: "Căng thẳng" };
+
+                document.getElementById("questions-container").innerHTML =
+                    c.questions
+                        .map((q, i) => {
+                            const subBadge = isDASS
+                                ? `<span class="q-subscale" style="background:${subColors[q.sub]}22;color:${subColors[q.sub]};">${subNames[q.sub]}</span>`
+                                : "";
+                            const crisisNote = q.isCrisis
+                                ? `<div style="font-size:.72rem;color:#dc2626;font-weight:600;margin-top:.4rem;padding:.4rem .75rem;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">
            ⚠️ Bất kỳ điểm nào ở câu này đều cần được chuyên gia đánh giá ngay lập tức
          </div>`
-      : '';
-    const reversedNote = q.reversed
-      ? `<span style="font-size:.62rem;color:#A28B8B;font-style:italic;margin-left:.4rem;">(Câu kiểm tra đảo điểm)</span>`
-      : '';
-      
-    let optHtml;
-    if (isISI) {
-      optHtml = `<div class="options-scale">
-        ${q.opts.map((opt, oi) => `
-          <button class="opt-scale-btn ${answers[i] === oi ? 'selected' : ''}"
+                                : "";
+                            const reversedNote = q.reversed
+                                ? `<span style="font-size:.62rem;color:#A28B8B;font-style:italic;margin-left:.4rem;">(Câu kiểm tra đảo điểm)</span>`
+                                : "";
+
+                            let optHtml;
+                            if (isISI) {
+                                optHtml = `<div class="options-scale">
+        ${q.opts
+            .map(
+                (opt, oi) => `
+          <button class="opt-scale-btn ${answers[i] === oi ? "selected" : ""}"
                   onclick="pickAnswer(${i}, ${oi})">${opt}</button>
-        `).join('')}
+        `,
+            )
+            .join("")}
       </div>`;
-    } else {
-      optHtml = `<div class="options-wrap">
-        ${c.options.map((opt, oi) => `
-          <button class="opt-btn ${answers[i] === oi ? 'selected' : ''}"
+                            } else {
+                                optHtml = `<div class="options-wrap">
+        ${c.options
+            .map(
+                (opt, oi) => `
+          <button class="opt-btn ${answers[i] === oi ? "selected" : ""}"
                   onclick="pickAnswer(${i}, ${oi})">${opt.label}</button>
-        `).join('')}
+        `,
+            )
+            .join("")}
       </div>`;
-    }
-    
-    return `
+                            }
+
+                            return `
       <div class="question-block" id="qb-${i}">
-        <div class="q-number">Câu ${i+1} / ${c.questions.length}${subBadge}</div>
+        <div class="q-number">Câu ${i + 1} / ${c.questions.length}${subBadge}</div>
         <div class="q-text">${q.text}${reversedNote}</div>
         ${crisisNote}
         ${optHtml}
       </div>`;
-  }).join('');
-  
-  updateProgress();
-}
+                        })
+                        .join("");
 
-function pickAnswer(qIdx, optIdx) {
-  answers[qIdx] = optIdx;
-  const block = document.getElementById(`qb-${qIdx}`);
-  block.querySelectorAll('.opt-btn, .opt-scale-btn').forEach((b, bi) =>
-    b.classList.toggle('selected', bi === optIdx)
-  );
-  updateProgress();
-}
+                updateProgress();
+            }
 
-function updateProgress() {
-  const answered = answers.filter(a => a !== null).length;
-  const total    = currentScale.questions.length;
-  const pct      = Math.round((answered / total) * 100);
-  
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-text').textContent  = `${answered} / ${total}`;
-  document.getElementById('submit-btn').disabled = (answered < total);
-}
+            function pickAnswer(qIdx, optIdx) {
+                answers[qIdx] = optIdx;
+                const block = document.getElementById(`qb-${qIdx}`);
+                block
+                    .querySelectorAll(".opt-btn, .opt-scale-btn")
+                    .forEach((b, bi) =>
+                        b.classList.toggle("selected", bi === optIdx),
+                    );
+                updateProgress();
+            }
 
-function resetAssessment() {
-  selectedId = null; currentScale = null; answers = [];
-  document.getElementById('step-select').style.display = 'block';
-  document.getElementById('start-row').style.display = 'none';
-  document.getElementById('assessment-box').classList.remove('visible');
-  document.getElementById('result-section').classList.remove('visible');
-  document.querySelectorAll('.scale-tile').forEach(t => t.classList.remove('selected'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+            function updateProgress() {
+                const answered = answers.filter((a) => a !== null).length;
+                const total = currentScale.questions.length;
+                const pct = Math.round((answered / total) * 100);
 
-// ════════════════════════════════════════════════════════════════
-//  TÍNH ĐIỂM & HIỂN THỊ KẾT QUẢ
-// ════════════════════════════════════════════════════════════════
-function submitAssessment() {
-  if (answers.some(a => a === null)) return;
-  
-  const scale  = currentScale;
-  const isDASS = scale.id === 'dass21';
-  const scores = scale.score(answers);
-  
-  let result;
-  if (isDASS) {
-    result = scale.interpret(scores);
-  } else if (scale.id === 'phq9') {
-    result = scale.interpret(scores, answers);
-  } else {
-    result = scale.interpret(scores);
-  }
-  
-  // Lưu kết quả vào hệ thống Store
-  Store.set('ms_last_result', {
-    scale: scale.id, scores, result, date: new Date().toISOString()
-  });
-  
-  document.getElementById('assessment-box').classList.remove('visible');
-  document.getElementById('result-section').classList.add('visible');
-  
-  renderResult(scale, scores, result);
-  document.getElementById('result-section').scrollIntoView({ behavior:'smooth', block:'start' });
-}
+                document.getElementById("progress-fill").style.width =
+                    pct + "%";
+                document.getElementById("progress-text").textContent =
+                    `${answered} / ${total}`;
+                document.getElementById("submit-btn").disabled =
+                    answered < total;
+            }
 
-function levelColor(key) {
-  return { normal:'#16a34a', mild:'#d97706', moderate:'#ea580c', severe:'#dc2626', 'very-severe':'#7c3aed' }[key] || '#64748b';
-}
+            function resetAssessment() {
+                selectedId = null;
+                currentScale = null;
+                answers = [];
+                chatMessages = [];
+                document.getElementById("step-select").style.display = "block";
+                document.getElementById("start-row").style.display = "none";
+                document
+                    .getElementById("assessment-box")
+                    .classList.remove("visible");
+                document
+                    .getElementById("result-section")
+                    .classList.remove("visible");
+                document
+                    .querySelectorAll(".scale-tile")
+                    .forEach((t) => t.classList.remove("selected"));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
 
-function levelBg(key) {
-  return { normal:'#f0fdf4', mild:'#fffbeb', moderate:'#fff7ed', severe:'#fef2f2', 'very-severe':'#fdf4ff' }[key] || '#f8fafc';
-}
+            function getAnswerLabel(scale, question, answerIndex) {
+                if (scale.id === "isi")
+                    return question.opts[answerIndex] || String(answerIndex);
+                return scale.options[answerIndex]?.label || String(answerIndex);
+            }
 
-function renderResult(scale, scores, result) {
-  const isDASS = scale.id === 'dass21';
-  const isPHQ9 = scale.id === 'phq9';
-  
-  // ── Khối hiển thị điểm số ──
-  let scoreHtml = '';
-  if (isDASS) {
-    const subColors = { D:'#3b82f6', A:'#8b5cf6', S:'#f59e0b' };
-    const subNames  = { D:'Trầm Cảm', A:'Lo Âu', S:'Căng Thẳng' };
-    scoreHtml = `
+            function buildAssessmentContext(scale, scores, result) {
+                const answerDetails = scale.questions.map((q, index) => ({
+                    number: index + 1,
+                    question: q.text,
+                    subscale: q.sub || null,
+                    isCrisis: !!q.isCrisis,
+                    isReversed: !!q.reversed,
+                    selectedIndex: answers[index],
+                    selectedLabel: getAnswerLabel(scale, q, answers[index]),
+                }));
+
+                return {
+                    scale: {
+                        id: scale.id,
+                        name: scale.name,
+                        title: scale.title,
+                        timeframe: scale.timeframe,
+                    },
+                    scores,
+                    result: {
+                        levelKey: result.levelKey,
+                        levelLabel: result.levelLabel,
+                        title: result.title || "",
+                        desc: result.desc || "",
+                        recs: result.recs || [],
+                        nextAction: result.nextAction,
+                        hasCrisis: !!result.hasCrisis,
+                        dClass: result.dClass || null,
+                        aClass: result.aClass || null,
+                        sClass: result.sClass || null,
+                    },
+                    answers: answerDetails,
+                    disclaimer:
+                        "Kết quả chỉ là sàng lọc tham khảo, không thay thế chẩn đoán y khoa.",
+                };
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            //  TÍNH ĐIỂM & HIỂN THỊ KẾT QUẢ
+            // ════════════════════════════════════════════════════════════════
+            function submitAssessment() {
+                if (answers.some((a) => a === null)) return;
+
+                const scale = currentScale;
+                const isDASS = scale.id === "dass21";
+                const scores = scale.score(answers);
+
+                let result;
+                if (isDASS) {
+                    result = scale.interpret(scores);
+                } else if (scale.id === "phq9") {
+                    result = scale.interpret(scores, answers);
+                } else {
+                    result = scale.interpret(scores);
+                }
+
+                const assessmentContext = buildAssessmentContext(
+                    scale,
+                    scores,
+                    result,
+                );
+                chatMessages = [];
+
+                // Lưu kết quả vào hệ thống Store
+                Store.set("ms_last_result", {
+                    scale: scale.id,
+                    scores,
+                    result,
+                    answers: assessmentContext.answers,
+                    chatContext: assessmentContext,
+                    date: new Date().toISOString(),
+                });
+
+                document
+                    .getElementById("assessment-box")
+                    .classList.remove("visible");
+                document
+                    .getElementById("result-section")
+                    .classList.add("visible");
+
+                renderResult(scale, scores, result);
+                document
+                    .getElementById("result-section")
+                    .scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+
+            function levelColor(key) {
+                return (
+                    {
+                        normal: "#16a34a",
+                        mild: "#d97706",
+                        moderate: "#ea580c",
+                        severe: "#dc2626",
+                        "very-severe": "#7c3aed",
+                    }[key] || "#64748b"
+                );
+            }
+
+            function levelBg(key) {
+                return (
+                    {
+                        normal: "#f0fdf4",
+                        mild: "#fffbeb",
+                        moderate: "#fff7ed",
+                        severe: "#fef2f2",
+                        "very-severe": "#fdf4ff",
+                    }[key] || "#f8fafc"
+                );
+            }
+
+            function renderResult(scale, scores, result) {
+                const isDASS = scale.id === "dass21";
+                const isPHQ9 = scale.id === "phq9";
+
+                // ── Khối hiển thị điểm số ──
+                let scoreHtml = "";
+                if (isDASS) {
+                    const subColors = {
+                        D: "#3b82f6",
+                        A: "#8b5cf6",
+                        S: "#f59e0b",
+                    };
+                    const subNames = {
+                        D: "Trầm Cảm",
+                        A: "Lo Âu",
+                        S: "Căng Thẳng",
+                    };
+                    scoreHtml = `
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1.25rem;">
-        ${['D','A','S'].map(k => {
-          const sc = scores[k];
-          const cl = result[k === 'D' ? 'dClass' : k === 'A' ? 'aClass' : 'sClass'];
-          return `<div style="background:rgba(255,255,255,.65);border:1.5px solid ${subColors[k]}33;border-radius:14px;padding:.9rem;text-align:center;">
+        ${["D", "A", "S"]
+            .map((k) => {
+                const sc = scores[k];
+                const cl =
+                    result[
+                        k === "D" ? "dClass" : k === "A" ? "aClass" : "sClass"
+                    ];
+                return `<div style="background:rgba(255,255,255,.65);border:1.5px solid ${subColors[k]}33;border-radius:14px;padding:.9rem;text-align:center;">
             <div style="font-size:2rem; font-weight:900; color:#3D2A2A; font-family:'Playfair Display',serif; font-variant-numeric: lining-nums;">${sc}</div>
             <div style="font-size:.7rem;color:#8E7A7A;font-weight:600;margin:.2rem 0;">${subNames[k]}</div>
             <div style="font-size:.68rem;font-weight:800;color:${levelColor(cl.key)}">${cl.label.toUpperCase()}</div>
           </div>`;
-        }).join('')}
+            })
+            .join("")}
       </div>
       <div style="font-size:.7rem;color:#8E7A7A;margin-top:.75rem;font-style:italic;">* Chỉ số đã tự động quy đổi nhân đôi (×2) dựa trên thuật toán DASS-42 gốc.</div>`;
-  } else {
-    scoreHtml = `<div class="result-score-display">
+                } else {
+                    scoreHtml = `<div class="result-score-display">
       <div class="score-big">${scores}</div>
       <div class="score-meta">/ ${scale.maxScore} tổng điểm</div>
     </div>`;
-  }
-  
-  // ── Khối thanh thước đo trực quan (Range Bar) ──
-  let rangeHtml = '';
-  if (scale.ranges && scale.ranges.length) {
-    const totalScore = typeof scores === 'number' ? scores : 0;
-    const pct = Math.min(100, Math.round((totalScore / scale.maxScore) * 100));
-    rangeHtml = `
+                }
+
+                // ── Khối thanh thước đo trực quan (Range Bar) ──
+                let rangeHtml = "";
+                if (scale.ranges && scale.ranges.length) {
+                    const totalScore = typeof scores === "number" ? scores : 0;
+                    const pct = Math.min(
+                        100,
+                        Math.round((totalScore / scale.maxScore) * 100),
+                    );
+                    rangeHtml = `
       <div class="range-visual">
         <div style="font-size:.65rem;font-weight:700;color:#8E7A7A;letter-spacing:.5px;margin-bottom:.5rem;">PHÂN VÙNG ĐIỂM SỐ LÂM SÀNG:</div>
         <div class="range-bar">
-          ${scale.ranges.map(r => `<div style="flex:${r.pct};background:${r.color};opacity:.75;" title="${r.label}"></div>`).join('')}
+          ${scale.ranges.map((r) => `<div style="flex:${r.pct};background:${r.color};opacity:.75;" title="${r.label}"></div>`).join("")}
         </div>
         <div class="range-labels">
-          ${scale.ranges.map(r => `<span style="flex:${r.pct};font-size:0.58rem;">${r.label}</span>`).join('')}
+          ${scale.ranges.map((r) => `<span style="flex:${r.pct};font-size:0.58rem;">${r.label}</span>`).join("")}
         </div>
         <div class="score-marker-wrap">
           <div class="score-track"></div>
           <div class="score-dot" style="left:${pct}%;"></div>
         </div>
       </div>`;
-  }
-  
-  // ── Bảng phân rã cấu trúc cho DASS-21 ──
-  let dassTableHtml = '';
-  if (isDASS) {
-    const subMap = [
-      { key:'D', name:'Trầm Cảm (Depression)', score: scores.D, norm: '≤ 9', cls: result.dClass },
-      { key:'A', name:'Lo Âu (Anxiety)',     score: scores.A, norm: '≤ 7', cls: result.aClass },
-      { key:'S', name:'Căng Thẳng (Stress)',  score: scores.S, norm: '≤ 14', cls: result.sClass },
-    ];
-    dassTableHtml = `
+                }
+
+                // ── Bảng phân rã cấu trúc cho DASS-21 ──
+                let dassTableHtml = "";
+                if (isDASS) {
+                    const subMap = [
+                        {
+                            key: "D",
+                            name: "Trầm Cảm (Depression)",
+                            score: scores.D,
+                            norm: "≤ 9",
+                            cls: result.dClass,
+                        },
+                        {
+                            key: "A",
+                            name: "Lo Âu (Anxiety)",
+                            score: scores.A,
+                            norm: "≤ 7",
+                            cls: result.aClass,
+                        },
+                        {
+                            key: "S",
+                            name: "Căng Thẳng (Stress)",
+                            score: scores.S,
+                            norm: "≤ 14",
+                            cls: result.sClass,
+                        },
+                    ];
+                    dassTableHtml = `
       <div class="result-section-label" style="margin-top:1.5rem;">PHÂN TÍCH CHUYÊN SÂU TỪNG THÀNH PHẦN</div>
       <table class="dass-table">
         <thead><tr><th>Hạng mục đánh giá</th><th>Điểm số quy đổi</th><th>Ngưỡng an toàn</th><th>Trạng thái lâm sàng</th></tr></thead>
         <tbody>
-          ${subMap.map(s => `<tr>
+          ${subMap
+              .map(
+                  (s) => `<tr>
             <td><strong>${s.name}</strong></td>
             <td><strong style="color:${levelColor(s.cls.key)}; font-size:1rem;">${s.score}</strong></td>
             <td>${s.norm}</td>
             <td><span class="dass-badge" style="background:${levelBg(s.cls.key)};color:${levelColor(s.cls.key)}">${s.cls.label}</span></td>
-          </tr>`).join('')}
+          </tr>`,
+              )
+              .join("")}
         </tbody>
       </table>`;
-  }
-  
-  // ── Cảnh báo rủi ro tự hại đối với PHQ-9 ──
-  const crisisHtml = (isPHQ9 && result.hasCrisis) ? `
+                }
+
+                // ── Cảnh báo rủi ro tự hại đối với PHQ-9 ──
+                const crisisHtml =
+                    isPHQ9 && result.hasCrisis
+                        ? `
     <div class="alert-danger" style="margin-top:0;margin-bottom:1.25rem; border-left: 5px solid #dc2626;">
       <span style="font-size:1.3rem;flex-shrink:0;">🚨</span>
-      <p><strong>CẢNH BÁO Y KHOA NGUY CẤP:</strong> Hệ thống ghi nhận bạn có câu trả lời kích hoạt tại Câu hỏi số 9 (về xu hướng tự tổn thương hoặc giải thoát). 
+      <p><strong>CẢNH BÁO Y KHOA NGUY CẤP:</strong> Hệ thống ghi nhận bạn có câu trả lời kích hoạt tại Câu hỏi số 9 (về xu hướng tự tổn thương hoặc giải thoát).
       Theo khuyến nghị lâm sàng quốc tế, <strong>mọi mức điểm lớn hơn 0 tại câu này cần được chuyên viên hỗ trợ khẩn cấp ngay lập tức.</strong>
       Vui lòng gọi hotline quốc gia <strong>1900 9095</strong> hoặc liên hệ cơ sở y tế gần nhất.</p>
-    </div>` : '';
-    
-  // ── Khối hành động ưu tiên khẩn cấp ──
-  const emergencyHtml = (result.nextAction === 'emergency' || result.nextAction === 'urgent') ? `
+    </div>`
+                        : "";
+
+                // ── Khối hành động ưu tiên khẩn cấp ──
+                const emergencyHtml =
+                    result.nextAction === "emergency" ||
+                    result.nextAction === "urgent"
+                        ? `
     <div class="alert-danger" style="border-left: 5px solid #b91c1c;">
       <span style="font-size:1.3rem;flex-shrink:0;">⚠️</span>
       <p>Nếu bạn đang trải qua cảm giác quá tải nghiêm trọng hoặc có ý định tự hại, hãy nhớ rằng bạn không phải một mình.
       Hãy kết nối ngay lập tức với tổng đài cứu hộ tinh thần <strong>1900 9095</strong> (Hỗ trợ 24/7) hoặc nhờ sự đồng hành của người thân cận.</p>
-    </div>` : '';
-    
-  const nextMap = {
-    monitor:   { href:'index.html',   label:'Kết quả an toàn — Trở về trang chủ' },
-    consult:   { href:'clinics.html', label:'🏥 Định vị Trung tâm Tham vấn Lâm sàng gần bạn' },
-    urgent:    { href:'clinics.html', label:'⚠️ Đặt hẹn Chuyên gia Y tế khẩn cấp' },
-    emergency: { href:'clinics.html', label:'🚨 Tìm Cơ sở Can thiệp Sức khỏe Tâm thần' },
-  };
-  const na = nextMap[result.nextAction] || nextMap.consult;
-  
-  document.getElementById('result-container').innerHTML = `
+    </div>`
+                        : "";
+
+                const nextMap = {
+                    monitor: {
+                        href: "index.html",
+                        label: "Kết quả an toàn — Trở về trang chủ",
+                    },
+                    consult: {
+                        href: "clinics.html",
+                        label: "🏥 Định vị Trung tâm Tham vấn Lâm sàng gần bạn",
+                    },
+                    urgent: {
+                        href: "clinics.html",
+                        label: "⚠️ Đặt hẹn Chuyên gia Y tế khẩn cấp",
+                    },
+                    emergency: {
+                        href: "clinics.html",
+                        label: "🚨 Tìm Cơ sở Can thiệp Sức khỏe Tâm thần",
+                    },
+                };
+                const na = nextMap[result.nextAction] || nextMap.consult;
+
+                document.getElementById("result-container").innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;">
       <h2 style="font-size:1.3rem;font-weight:800;color:#3D2A2A;font-family:'Playfair Display',serif;margin:0;">Báo Cáo Sàng Lọc Lâm Sàng ${scale.name}</h2>
-      <div style="font-size:.75rem;color:#A28B8B;font-weight:600;">Ngày thực hiện: ${new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}</div>
+      <div style="font-size:.75rem;color:#A28B8B;font-weight:600;">Ngày thực hiện: ${new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}</div>
     </div>
     <div class="result-card">
       <div class="result-banner lvl-${result.levelKey}">
         <div class="result-level-badge">${result.levelLabel}</div>
         ${scoreHtml}
-        ${result.title ? `<div class="result-title" style="margin-top:0.5rem;">${result.title}</div>` : ''}
-        <div class="result-desc">${result.desc || ''}</div>
+        ${result.title ? `<div class="result-title" style="margin-top:0.5rem;">${result.title}</div>` : ""}
+        <div class="result-desc">${result.desc || ""}</div>
         ${rangeHtml}
       </div>
       <div class="result-body">
         ${crisisHtml}
         ${dassTableHtml}
-        <div class="result-section-label" style="margin-top:${isDASS?'1.5rem':'0'};">ĐỊNH HƯỚNG & KHUYẾN NGHỊ Y KHOA</div>
+        <div class="result-section-label" style="margin-top:${isDASS ? "1.5rem" : "0"};">ĐỊNH HƯỚNG & KHUYẾN NGHỊ Y KHOA</div>
         <ul class="reco-list">
-          ${result.recs.map(r => `<li>${r}</li>`).join('')}
+          ${result.recs.map((r) => `<li>${r}</li>`).join("")}
         </ul>
         ${emergencyHtml}
-        
+
         <div class="next-actions">
           <a href="${na.href}" class="action-tile primary"
-            onclick="${na.href === 'clinics.html' ? 'event.preventDefault(); showRatingBeforeClinic(this.href);' : ''}">
+            onclick="${na.href === "clinics.html" ? "event.preventDefault(); showRatingBeforeClinic(this.href);" : ""}">
             <h4>${na.label}</h4>
             <p>Dựa trên ngưỡng điểm số, MindBuddy gợi ý lộ trình kết nối cơ sở hỗ trợ phù hợp.</p>
           </a>
@@ -972,7 +2263,31 @@ function renderResult(scale, scores, result) {
             <p>Phối hợp nhiều thang đo (như Mất ngủ ISI kết hợp Lo âu GAD) giúp gia tăng dữ liệu sàng lọc toàn diện.</p>
           </a>
         </div>
-        
+
+        <div class="chatbot-card" id="mindbuddy-chatbot">
+          <div class="chatbot-head">
+            <div>
+              <h3>💬 Chat với MindBuddy</h3>
+              <p>Hỏi thêm về kết quả ${scale.name}, các câu bạn vừa trả lời, và bước tiếp theo an toàn.</p>
+            </div>
+            <span class="chatbot-status">AI hỗ trợ · Groq</span>
+          </div>
+          <div class="chatbot-messages" id="chatbot-messages" aria-live="polite">
+            <div class="chat-msg assistant">Mình đã xem kết quả sàng lọc ${scale.name} của bạn. Bạn có thể hỏi mình giải thích điểm số, câu trả lời nổi bật, hoặc nên làm gì tiếp theo. Lưu ý: mình không thay thế bác sĩ/chuyên gia tâm lý.</div>
+          </div>
+          <div class="chatbot-suggestions">
+            <button type="button" onclick="sendSuggestedChat('Giải thích kết quả của tôi bằng ngôn ngữ dễ hiểu')">Giải thích kết quả</button>
+            <button type="button" onclick="sendSuggestedChat('Những câu trả lời nào đáng chú ý nhất?')">Câu đáng chú ý</button>
+            <button type="button" onclick="sendSuggestedChat('Tôi nên làm gì trong 7 ngày tới?')">Kế hoạch 7 ngày</button>
+            <button type="button" onclick="sendSuggestedChat('Khi nào tôi nên gặp chuyên gia?')">Khi nào cần gặp chuyên gia?</button>
+          </div>
+          <form class="chatbot-form" onsubmit="sendChatMessage(event)">
+            <textarea id="chatbot-input" rows="1" placeholder="Nhập câu hỏi của bạn..." onkeydown="handleChatKeydown(event)"></textarea>
+            <button id="chatbot-send" type="submit">Gửi</button>
+          </form>
+          <div class="chatbot-note">Nếu bạn đang có ý nghĩ tự làm hại bản thân hoặc đang trong tình huống khẩn cấp, hãy gọi <strong>1900 9095</strong>, đến cơ sở y tế gần nhất, hoặc nhờ người thân ở cạnh ngay.</div>
+        </div>
+
         <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #FFE0D6;">
           <div style="font-size:.65rem;font-weight:700;letter-spacing:1px;color:#A28B8B;margin-bottom:.6rem;">TÀI LIỆU KHẢO CỨU GỐC</div>
           <p style="font-size:.72rem;color:#A28B8B;line-height:1.7;font-style:italic;margin:0;">${scale.reference}</p>
@@ -987,30 +2302,126 @@ function renderResult(scale, scores, result) {
         &larr; Quay lại danh sách thang đo
       </button>
     </div>`;
-}
+            }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initScrollReveal();
-});
+            function getChatContext() {
+                return Store.get("ms_last_result")?.chatContext || null;
+            }
 
-// ── POPUP RATING ──────────
-function showRatingBeforeClinic(dest) {
-  // Cooldown 3h
-  const cooldownKey = 'mb_rating_assessment';
-  const last = Store.get(cooldownKey);
-  const threeHours = 3 * 60 * 60 * 1000;
-  if (last && (Date.now() - last < threeHours)) {
-    window.location.href = dest;
-    return;
-  }
-  if (document.getElementById('rating-modal')) {
-    window.location.href = dest;
-    return;
-  }
+            function appendChatMessage(role, content, extraClass = "") {
+                const list = document.getElementById("chatbot-messages");
+                if (!list) return null;
+                const bubble = document.createElement("div");
+                bubble.className = `chat-msg ${role} ${extraClass}`.trim();
+                bubble.textContent = content;
+                list.appendChild(bubble);
+                list.scrollTop = list.scrollHeight;
+                return bubble;
+            }
 
-  const modal = document.createElement('div');
-  modal.id = 'rating-modal';
-  modal.innerHTML = `
+            function setChatSending(isSending) {
+                const button = document.getElementById("chatbot-send");
+                const input = document.getElementById("chatbot-input");
+                if (button) {
+                    button.disabled = isSending;
+                    button.textContent = isSending ? "Đang gửi..." : "Gửi";
+                }
+                if (input) input.disabled = isSending;
+            }
+
+            function sendSuggestedChat(text) {
+                const input = document.getElementById("chatbot-input");
+                if (!input) return;
+                input.value = text;
+                sendChatMessage(new Event("submit"));
+            }
+
+            function handleChatKeydown(event) {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendChatMessage(new Event("submit"));
+                }
+            }
+
+            async function sendChatMessage(event) {
+                event.preventDefault();
+                const input = document.getElementById("chatbot-input");
+                if (!input || input.disabled) return;
+
+                const text = input.value.trim();
+                if (!text) return;
+
+                input.value = "";
+                chatMessages.push({ role: "user", content: text });
+                appendChatMessage("user", text);
+                const loadingBubble = appendChatMessage(
+                    "assistant",
+                    "MindBuddy đang suy nghĩ...",
+                    "loading",
+                );
+                setChatSending(true);
+
+                try {
+                    const response = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            messages: chatMessages,
+                            assessment: getChatContext(),
+                        }),
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok)
+                        throw new Error(
+                            data.error || "Không gọi được API chat.",
+                        );
+
+                    const reply =
+                        data.reply ||
+                        "Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.";
+                    if (loadingBubble) {
+                        loadingBubble.classList.remove("loading");
+                        loadingBubble.textContent = reply;
+                    } else {
+                        appendChatMessage("assistant", reply);
+                    }
+                    chatMessages.push({ role: "assistant", content: reply });
+                } catch (error) {
+                    const fallback = `${error.message}\n\nNếu bạn đang chạy bằng python3 -m http.server thì API /api/chat sẽ chưa hoạt động. Hãy deploy lên Vercel hoặc chạy bằng Vercel Dev với biến môi trường GROQ_API_KEY.`;
+                    if (loadingBubble) {
+                        loadingBubble.classList.remove("loading");
+                        loadingBubble.textContent = fallback;
+                    } else {
+                        appendChatMessage("assistant", fallback);
+                    }
+                } finally {
+                    setChatSending(false);
+                    input.focus();
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                initScrollReveal();
+            });
+
+            // ── POPUP RATING ──────────
+            function showRatingBeforeClinic(dest) {
+                // Cooldown 3h
+                const cooldownKey = "mb_rating_assessment";
+                const last = Store.get(cooldownKey);
+                const threeHours = 3 * 60 * 60 * 1000;
+                if (last && Date.now() - last < threeHours) {
+                    window.location.href = dest;
+                    return;
+                }
+                if (document.getElementById("rating-modal")) {
+                    window.location.href = dest;
+                    return;
+                }
+
+                const modal = document.createElement("div");
+                modal.id = "rating-modal";
+                modal.innerHTML = `
     <style>
       #rating-modal {
         position:fixed;inset:0;z-index:10000;
@@ -1067,57 +2478,75 @@ function showRatingBeforeClinic(dest) {
       <button class="rm-skip" onclick="dismissRatingModal('${dest}')">Bỏ qua, đến trang phòng khám →</button>
     </div>
   `;
-  document.body.appendChild(modal);
+                document.body.appendChild(modal);
 
-  const stars = modal.querySelectorAll('.rm-star');
-  stars.forEach((star, idx) => {
-    star.addEventListener('mouseenter', () => {
-      stars.forEach((s, i) => s.classList.toggle('lit', i <= idx));
-    });
-    star.addEventListener('mouseleave', () => {
-      stars.forEach(s => s.classList.remove('lit'));
-    });
-    star.addEventListener('click', () => {
-      const rating = star.getAttribute('data-v');
-      stars.forEach(s => { s.disabled = true; s.style.cursor = 'default'; });
-      stars.forEach((s, i) => s.classList.toggle('lit', i <= idx));
-      document.getElementById('rm-msg').textContent = 'Đang gửi...';
+                const stars = modal.querySelectorAll(".rm-star");
+                stars.forEach((star, idx) => {
+                    star.addEventListener("mouseenter", () => {
+                        stars.forEach((s, i) =>
+                            s.classList.toggle("lit", i <= idx),
+                        );
+                    });
+                    star.addEventListener("mouseleave", () => {
+                        stars.forEach((s) => s.classList.remove("lit"));
+                    });
+                    star.addEventListener("click", () => {
+                        const rating = star.getAttribute("data-v");
+                        stars.forEach((s) => {
+                            s.disabled = true;
+                            s.style.cursor = "default";
+                        });
+                        stars.forEach((s, i) =>
+                            s.classList.toggle("lit", i <= idx),
+                        );
+                        document.getElementById("rm-msg").textContent =
+                            "Đang gửi...";
 
-      // SEND RATING
-      const frameId = 'rm-frame-' + Date.now();
-      const iframe = document.createElement('iframe');
-      iframe.name = frameId; iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+                        // SEND RATING
+                        const frameId = "rm-frame-" + Date.now();
+                        const iframe = document.createElement("iframe");
+                        iframe.name = frameId;
+                        iframe.style.display = "none";
+                        document.body.appendChild(iframe);
 
-      const form = document.createElement('form');
-      form.method = 'POST'; form.action = RATING_URL;
-      form.target = frameId; form.style.display = 'none';
-      [
-        { name:'rating',    value: rating },
-        { name:'page',      value: 'assessment' },
-        { name:'userAgent', value: navigator.userAgent.slice(0,200) }
-      ].forEach(f => {
-        const inp = document.createElement('input');
-        inp.type='hidden'; inp.name=f.name; inp.value=f.value;
-        form.appendChild(inp);
-      });
-      document.body.appendChild(form);
-      form.submit();
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = RATING_URL;
+                        form.target = frameId;
+                        form.style.display = "none";
+                        [
+                            { name: "rating", value: rating },
+                            { name: "page", value: "assessment" },
+                            {
+                                name: "userAgent",
+                                value: navigator.userAgent.slice(0, 200),
+                            },
+                        ].forEach((f) => {
+                            const inp = document.createElement("input");
+                            inp.type = "hidden";
+                            inp.name = f.name;
+                            inp.value = f.value;
+                            form.appendChild(inp);
+                        });
+                        document.body.appendChild(form);
+                        form.submit();
 
-      document.getElementById('rm-msg').textContent = 'Cảm ơn bạn! 🌸 Đang chuyển trang...';
-      setTimeout(() => {
-        form.remove(); iframe.remove();
-        window.location.href = dest;
-      }, 1400);
-    });
-  });
-}
+                        document.getElementById("rm-msg").textContent =
+                            "Cảm ơn bạn! 🌸 Đang chuyển trang...";
+                        setTimeout(() => {
+                            form.remove();
+                            iframe.remove();
+                            window.location.href = dest;
+                        }, 1400);
+                    });
+                });
+            }
 
-function dismissRatingModal(dest) {
-  const m = document.getElementById('rating-modal');
-  if (m) m.remove();
-  window.location.href = dest;
-}
-</script>
-</body>
+            function dismissRatingModal(dest) {
+                const m = document.getElementById("rating-modal");
+                if (m) m.remove();
+                window.location.href = dest;
+            }
+        </script>
+    </body>
 </html>

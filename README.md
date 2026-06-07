@@ -13,3 +13,40 @@
    → Tìm "Live Server" → Install
 3. Mở thư mục chứa index.html
 4. Chuột phải vào index.html → "Open with Live Server"
+
+### Chạy chatbot Groq trong Zed
+Chatbot cần backend `/api/chat`, vì vậy không chạy được đầy đủ bằng cách mở file HTML trực tiếp hoặc `python3 -m http.server`.
+
+Trong terminal của Zed:
+
+```bash
+cd /Users/nguyenquy1411/Documents/dev/SSG105_SU26
+cp .env.example .env.local
+```
+
+Thêm key Groq vào `.env.local`:
+
+```bash
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Sau đó chạy:
+
+```bash
+npm start
+```
+
+Mở:
+
+```text
+http://localhost:3000
+```
+
+#### Deploy Vercel
+Trong Vercel Project Settings → Environment Variables, thêm:
+
+```text
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Không đưa API key vào file `.html` hoặc `.js` phía frontend.
