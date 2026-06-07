@@ -278,6 +278,31 @@ function formatWebResults(results) {
 		.join("\n\n");
 }
 
+function normalizeMarkdownLinks(content) {
+	return String(content || "")
+		.replace(/\[([^\]]+)]\s+\((https?:\/\/[^\s)]+)\)/g, "[$1]($2)")
+		.replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\s+\)/g, "[$1]($2)")
+		.replace(/\((https?:\/\/[^\s)]+)[.,，。]\)/g, "($1)");
+}
+
+function appendVerifiedSources(content, sources) {
+	if (!sources?.length) return content;
+	const existing = String(content || "");
+	const missingSources = sources
+		.filter((source) => source.title && source.url && !existing.includes(source.url))
+		.slice(0, 5);
+	if (!missingSources.length) return content;
+
+	const sourceMarkdown = missingSources
+		.map((source) => `- [${source.title.replace(/[\[\]]/g, "")}](${source.url})`)
+		.join("\n");
+	return `${existing.trim()}\n\n### Nguồn trực tiếp mình đã kiểm tra\n${sourceMarkdown}`;
+}
+
+function prepareAssistantReply(content, sources) {
+	return normalizeMarkdownLinks(appendVerifiedSources(content, sources));
+}
+
 async function buildWebSearchContext(messages, assessment) {
 	if (!shouldSearchWeb(messages)) return { context: "", sources: [] };
 	const queries = buildSearchQueries(messages, assessment);
@@ -348,6 +373,8 @@ Nguyên tắc dùng kết quả web:
 - Chỉ dùng các kết quả từ nền tảng trực tiếp trong danh sách nguồn web: YouTube, Spotify, SoundCloud, Apple Podcasts, Apple Music, IMDb. Không dùng blog, báo, trang SEO, trang tổng hợp hoặc web chung chung để gợi ý tài nguyên giải trí/thư giãn.
 - Khi có nhiều nguồn phù hợp, ưu tiên YouTube trước, sau đó mới đến Spotify, SoundCloud, Apple Podcasts/Apple Music, IMDb.
 - Nếu có kết quả web từ nền tảng trực tiếp, hãy dùng chúng để gợi ý link/tài nguyên cụ thể và trích nguồn bằng Markdown.
+- Link phải đúng Markdown chuẩn: [Tên tài nguyên](https://example.com). Không đặt khoảng trắng giữa ] và (, không dùng HTML, không để dấu chấm/phẩy nằm trong URL.
+- Nếu không chắc link có thật, không tạo link Markdown giả; chỉ nói từ khóa người dùng có thể tìm.
 - Chỉ được nêu tên tài nguyên cụ thể (bài nhạc, playlist, podcast, phim, app, video, nghệ sĩ/phiên bản) khi tên đó xuất hiện rõ trong kết quả web.
 - Không tự chế các phiên bản như "piano version", "lofi version", "acoustic version" của một nghệ sĩ/bài hát nếu kết quả web không xác nhận có thật.
 - Không bịa link, tên podcast/phim/app hoặc nguồn. Nếu kết quả web không đủ phù hợp, hãy nói nhẹ nhàng rằng bạn chưa tìm được nguồn trực tiếp thật sự sát trên YouTube/Spotify/SoundCloud/Apple Podcasts/IMDb.
@@ -442,10 +469,12 @@ module.exports = async function handler(req, res) {
 			});
 		}
 
+		const rawReply =
+			data?.choices?.[0]?.message?.content ||
+			"Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.";
+
 		return sendJson(res, 200, {
-			reply:
-				data?.choices?.[0]?.message?.content ||
-				"Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.",
+			reply: prepareAssistantReply(rawReply, webSearch.sources),
 			sources: webSearch.sources,
 		});
 	} catch (error) {
