@@ -1,40 +1,54 @@
 // ============================================================
 // api/chat.js — MINDBUDDY VERCEL SERVERLESS (Groq)
+// Tương thích cả Vercel (export default) lẫn server.js local (module.exports)
 // Vercel Dashboard → Settings → Environment Variables:
 //   GROQ_API_KEY = your_groq_api_key_here
 //   TAVILY_API_KEY = your_tavily_key  (tuỳ chọn, search tốt hơn)
 // ============================================================
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Method not allowed' }));
+  }
 
   const groqKey = process.env.GROQ_API_KEY;
   if (!groqKey) {
-    return res.status(500).json({
-      error: 'GROQ_API_KEY chưa được cấu hình trong Vercel Environment Variables.'
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      error: 'GROQ_API_KEY chưa được cấu hình. Thêm vào .env.local (local) hoặc Vercel Environment Variables (production).'
+    }));
+  }
+
+  // Parse body — Vercel tự parse, server.js local cần parse thủ công
+  let body = req.body;
+  if (!body) {
+    body = await new Promise((resolve) => {
+      let data = '';
+      req.on('data', chunk => { data += chunk; });
+      req.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch { resolve({}); }
+      });
     });
   }
 
   try {
-    const { messages = [], assessment } = req.body || {};
-
-    // ── Xây dựng system prompt từ assessment context ──────────
+    const { messages = [], assessment } = body;
     const systemPrompt = buildSystemPrompt(assessment);
 
-    // ── Kiểm tra web search request ──────────────────────────
+    // Web search nếu user yêu cầu
     const lastMsg = messages[messages.length - 1]?.content || '';
     const wantsSearch = /tìm web|search|tìm kiếm|tìm trên|tài nguyên mới/i.test(lastMsg);
-
     let searchResults = '';
     if (wantsSearch) {
       searchResults = await doSearch(lastMsg, assessment);
     }
 
-    // ── Inject search results vào message nếu có ─────────────
     const finalMessages = [...messages];
     if (searchResults && finalMessages.length > 0) {
       const last = finalMessages[finalMessages.length - 1];
@@ -44,7 +58,6 @@ export default async function handler(req, res) {
       };
     }
 
-    // ── Gọi Groq API ──────────────────────────────────────────
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,23 +77,26 @@ export default async function handler(req, res) {
 
     if (!groqRes.ok) {
       const err = await groqRes.json().catch(() => ({}));
-      return res.status(groqRes.status).json({
-        error: err.error?.message || `Groq API lỗi ${groqRes.status}`
-      });
+      const errMsg = err.error?.message || `Groq API lỗi ${groqRes.status}`;
+      res.writeHead(groqRes.status, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: errMsg }));
     }
 
     const data = await groqRes.json();
-    const reply = data.choices?.[0]?.message?.content || 'Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.';
+    const reply = data.choices?.[0]?.message?.content
+      || 'Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.';
 
-    return res.status(200).json({ reply });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ reply }));
 
   } catch (err) {
     console.error('MindBuddy API error:', err);
-    return res.status(500).json({ error: 'Đã xảy ra lỗi. Vui lòng thử lại.' });
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Đã xảy ra lỗi. Vui lòng thử lại.' }));
   }
 }
 
-// ── System prompt builder ─────────────────────────────────────
+// ── System prompt ────────────────────────────────────────────
 function buildSystemPrompt(ctx) {
   const base = `Bạn là MindBuddy AI — người bạn đồng hành sức khỏe tinh thần thân thiện, ấm áp, am hiểu tâm lý học.
 
@@ -108,7 +124,10 @@ PHONG CÁCH: Ấm áp, thực tế, ngắn gọn (tối đa 4 đoạn trừ khi 
     : '';
 
   const highNote = ctx.answers?.filter(a => a.selectedIndex >= 2).length > 0
-    ? `\nCÂU TRẢ LỜI ĐÁNG CHÚ Ý: ${ctx.answers.filter(a => a.selectedIndex >= 2).map(a => `"${a.question}" (${a.selectedLabel})`).slice(0, 5).join('; ')}`
+    ? `\nCÂU TRẢ LỜI ĐÁNG CHÚ Ý: ${ctx.answers
+        .filter(a => a.selectedIndex >= 2)
+        .map(a => `"${a.question}" (${a.selectedLabel})`)
+        .slice(0, 5).join('; ')}`
     : '';
 
   return `${base}
@@ -130,7 +149,6 @@ async function doSearch(query, ctx) {
     ? `${query} ${ctx.userPreferences} sức khỏe tâm thần`
     : `${query} sức khỏe tâm thần Việt Nam`;
 
-  // Thử Tavily trước
   if (tavilyKey) {
     try {
       const r = await fetch('https://api.tavily.com/search', {
@@ -146,7 +164,7 @@ async function doSearch(query, ctx) {
       if (r.ok) {
         const d = await r.json();
         return (d.results || [])
-          .map(r => `- **${r.title}**: ${r.content?.slice(0, 200)}... [${r.url}]`)
+          .map(item => `- **${item.title}**: ${item.content?.slice(0, 200)}... [${item.url}]`)
           .join('\n');
       }
     } catch {}
@@ -158,7 +176,8 @@ async function doSearch(query, ctx) {
     const r = await fetch(`https://api.duckduckgo.com/?q=${encoded}&format=json&no_html=1&skip_disambig=1`);
     if (r.ok) {
       const d = await r.json();
-      const items = (d.RelatedTopics || []).slice(0, 4)
+      const items = (d.RelatedTopics || [])
+        .slice(0, 4)
         .filter(t => t.Text)
         .map(t => `- ${t.Text}`);
       return items.length ? items.join('\n') : '';
@@ -167,3 +186,7 @@ async function doSearch(query, ctx) {
 
   return '';
 }
+
+// Tương thích cả CommonJS (server.js local) lẫn ESM (Vercel)
+module.exports = handler;
+module.exports.default = handler;
