@@ -376,6 +376,69 @@
                 font-weight: 700;
             }
 
+            /* USER PREFERENCES */
+            .preference-card {
+                background: #fff;
+                border: 1.5px solid #ffe0d6;
+                border-radius: 20px;
+                padding: 1.35rem;
+                margin-top: 1.25rem;
+                box-shadow: 0 6px 16px rgba(255, 123, 142, 0.05);
+            }
+            .preference-card h3 {
+                font-size: 0.95rem;
+                color: #3d2a2a;
+                font-weight: 800;
+                margin: 0 0 0.35rem;
+                font-family: "Playfair Display", serif;
+            }
+            .preference-card p {
+                color: #8e7a7a;
+                font-size: 0.76rem;
+                line-height: 1.6;
+                margin: 0 0 0.85rem;
+            }
+            .preference-input {
+                width: 100%;
+                min-height: 78px;
+                resize: vertical;
+                border: 1.5px solid #ffe0d6;
+                border-radius: 16px;
+                background: #fff8f6;
+                color: #3d2a2a;
+                font-size: 0.8rem;
+                line-height: 1.55;
+                font-family: inherit;
+                padding: 0.8rem 0.9rem;
+                outline: none;
+            }
+            .preference-input:focus {
+                border-color: #ff7b8e;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(255, 123, 142, 0.12);
+            }
+            .preference-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45rem;
+                margin-top: 0.75rem;
+            }
+            .preference-chips button {
+                border: 1.5px solid #ffe0d6;
+                background: #fff;
+                color: #ff5a70;
+                border-radius: 99px;
+                padding: 0.38rem 0.7rem;
+                font-size: 0.7rem;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .preference-chips button:hover {
+                background: #fff0eb;
+                border-color: #ffb7b2;
+            }
+
             /* ACTION ROW */
             .action-row {
                 display: flex;
@@ -1120,6 +1183,76 @@
                     </div>
 
                     <div id="questions-container"></div>
+
+                    <div class="preference-card">
+                        <h3>Sở thích giúp MindBuddy hiểu bạn hơn</h3>
+                        <p>
+                            Phần này không bắt buộc. Bạn có thể ghi những hoạt
+                            động khiến mình thấy dễ chịu hơn, ví dụ: nghe nhạc,
+                            xem phim nhẹ nhàng, đọc sách, vẽ, đi bộ, chơi game,
+                            nấu ăn...
+                        </p>
+                        <textarea
+                            id="preference-input"
+                            class="preference-input"
+                            placeholder="Ví dụ: Tôi thích nghe nhạc indie, xem phim hoạt hình nhẹ nhàng, đi dạo buổi tối và viết nhật ký..."
+                            oninput="updateUserPreferences(this.value)"
+                        ></textarea>
+                        <div class="preference-chips">
+                            <button
+                                type="button"
+                                onclick="
+                                    addPreferenceSuggestion(
+                                        'nghe nhạc thư giãn',
+                                    )
+                                "
+                            >
+                                Nhạc thư giãn
+                            </button>
+                            <button
+                                type="button"
+                                onclick="
+                                    addPreferenceSuggestion(
+                                        'xem phim nhẹ nhàng',
+                                    )
+                                "
+                            >
+                                Phim nhẹ nhàng
+                            </button>
+                            <button
+                                type="button"
+                                onclick="
+                                    addPreferenceSuggestion('podcast tâm lý')
+                                "
+                            >
+                                Podcast tâm lý
+                            </button>
+                            <button
+                                type="button"
+                                onclick="addPreferenceSuggestion('đi bộ')"
+                            >
+                                Đi bộ
+                            </button>
+                            <button
+                                type="button"
+                                onclick="
+                                    addPreferenceSuggestion('viết nhật ký')
+                                "
+                            >
+                                Viết nhật ký
+                            </button>
+                            <button
+                                type="button"
+                                onclick="
+                                    addPreferenceSuggestion(
+                                        'vẽ hoặc làm đồ thủ công',
+                                    )
+                                "
+                            >
+                                Vẽ / thủ công
+                            </button>
+                        </div>
+                    </div>
 
                     <div class="action-row">
                         <button class="btn-back" onclick="resetAssessment()">
@@ -1896,6 +2029,7 @@
             let currentScale = null;
             let answers = [];
             let chatMessages = [];
+            let userPreferences = Store.get("ms_user_preferences", "");
 
             // ════════════════════════════════════════════════════════════════
             //  CHỌN THANG ĐO
@@ -1935,6 +2069,30 @@
                     `<span style="font-size:.72rem;font-weight:700;color:#FF7B8E;letter-spacing:.5px;">NGUỒN KHOA HỌC: </span>${currentScale.reference}<br><br>${currentScale.instruction}`;
 
                 renderQuestions();
+                const preferenceInput =
+                    document.getElementById("preference-input");
+                if (preferenceInput) preferenceInput.value = userPreferences;
+            }
+
+            function updateUserPreferences(value) {
+                userPreferences = value.trim();
+                Store.set("ms_user_preferences", userPreferences);
+            }
+
+            function addPreferenceSuggestion(text) {
+                const input = document.getElementById("preference-input");
+                if (!input) return;
+                const current = input.value.trim();
+                const parts = current
+                    ? current.split(",").map((p) => p.trim())
+                    : [];
+                if (
+                    !parts.some((p) => p.toLowerCase() === text.toLowerCase())
+                ) {
+                    parts.push(text);
+                }
+                input.value = parts.filter(Boolean).join(", ");
+                updateUserPreferences(input.value);
             }
 
             function renderQuestions() {
@@ -2047,6 +2205,7 @@
             }
 
             function buildAssessmentContext(scale, scores, result) {
+                const preferences = userPreferences.trim();
                 const answerDetails = scale.questions.map((q, index) => ({
                     number: index + 1,
                     question: q.text,
@@ -2107,6 +2266,10 @@
                     },
                     answers: answerDetails,
                     answerSections,
+                    userPreferences: preferences,
+                    userProfile: {
+                        preferences,
+                    },
                     disclaimer:
                         "Kết quả chỉ là sàng lọc tham khảo, không thay thế chẩn đoán y khoa.",
                 };
@@ -2131,12 +2294,22 @@
                     result = scale.interpret(scores);
                 }
 
+                const preferenceInput =
+                    document.getElementById("preference-input");
+                userPreferences = (
+                    preferenceInput?.value ||
+                    userPreferences ||
+                    ""
+                ).trim();
+                Store.set("ms_user_preferences", userPreferences);
+
                 const assessmentContext = buildAssessmentContext(
                     scale,
                     scores,
                     result,
                 );
                 chatMessages = [];
+                Store.set("ms_chat_messages", chatMessages);
 
                 // Lưu kết quả vào hệ thống Store
                 Store.set("ms_last_result", {
@@ -2144,6 +2317,7 @@
                     scores,
                     result,
                     answers: assessmentContext.answers,
+                    userPreferences,
                     chatContext: assessmentContext,
                     date: new Date().toISOString(),
                 });
@@ -2393,6 +2567,7 @@
             <button type="button" onclick="sendSuggestedChat('Cho tôi giải pháp thực tế trong 24 giờ và 7 ngày tới')">Giải pháp thực tế</button>
             <button type="button" onclick="sendSuggestedChat('Gợi ý nhạc, podcast và phim nhẹ nhàng phù hợp với tình trạng của tôi')">Nhạc · podcast · phim</button>
             <button type="button" onclick="sendSuggestedChat('Tôi thích nghe nhạc và xem phim, hãy gợi ý theo sở thích đó')">Theo sở thích của tôi</button>
+            <button type="button" onclick="sendSuggestedChat('Tìm trên web vài tài nguyên mới phù hợp với sở thích và kết quả trắc nghiệm của tôi')">Tìm web theo sở thích</button>
           </div>
           <form class="chatbot-form" onsubmit="sendChatMessage(event)">
             <textarea id="chatbot-input" rows="1" placeholder="Nhập câu hỏi của bạn..." onkeydown="handleChatKeydown(event)"></textarea>
@@ -2418,7 +2593,24 @@
             }
 
             function getChatContext() {
-                return Store.get("ms_last_result")?.chatContext || null;
+                const lastResult = Store.get("ms_last_result");
+                if (!lastResult?.chatContext) return null;
+                const preferences = Store.get(
+                    "ms_user_preferences",
+                    lastResult.chatContext.userPreferences || "",
+                );
+                return {
+                    ...lastResult.chatContext,
+                    userPreferences: preferences,
+                    userProfile: {
+                        ...(lastResult.chatContext.userProfile || {}),
+                        preferences,
+                    },
+                };
+            }
+
+            function persistChatMessages() {
+                Store.set("ms_chat_messages", chatMessages.slice(-30));
             }
 
             function renderMarkdown(content) {
@@ -2513,6 +2705,7 @@
 
                 input.value = "";
                 chatMessages.push({ role: "user", content: text });
+                persistChatMessages();
                 appendChatMessage("user", text);
                 const loadingBubble = appendChatMessage(
                     "assistant",
@@ -2546,6 +2739,7 @@
                         appendChatMessage("assistant", reply);
                     }
                     chatMessages.push({ role: "assistant", content: reply });
+                    persistChatMessages();
                 } catch (error) {
                     const fallback = `${error.message}\n\nNếu bạn đang chạy bằng python3 -m http.server thì API /api/chat sẽ chưa hoạt động. Hãy deploy lên Vercel hoặc chạy bằng Vercel Dev với biến môi trường GROQ_API_KEY.`;
                     if (loadingBubble) {
@@ -2554,6 +2748,8 @@
                     } else {
                         appendChatMessage("assistant", fallback);
                     }
+                    chatMessages.push({ role: "assistant", content: fallback });
+                    persistChatMessages();
                 } finally {
                     setChatSending(false);
                     input.focus();

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Chat AI — MindBuddy</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="chat.css" />
+        <script src="shared.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+        <script defer src="/_vercel/insights/script.js"></script>
+    </head>
+    <body>
+        <div id="header-root"></div>
+
+        <main class="chat-page">
+            <div class="chat-shell">
+                <section class="chat-hero">
+                    <h1>Chat AI MindBuddy</h1>
+                    <p>
+                        Tiếp tục trò chuyện dựa trên kết quả trắc nghiệm gần
+                        nhất của bạn. Dữ liệu được lưu trong trình duyệt bằng
+                        localStorage.
+                    </p>
+                </section>
+                <div id="chat-content"></div>
+            </div>
+        </main>
+
+        <div id="footer-root"></div>
+
+        <script src="chat.js"></script>
+    </body>
+</html>

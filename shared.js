@@ -3,67 +3,115 @@
 // ============================================================
 
 // ── THƯƠNG HIỆU ─────────────────────────
-const MS = { navy:'#0F2744', teal:'#0D9488', tealLt:'#CCFBF1', sky:'#E0F2FE', warn:'#F59E0B', danger:'#DC2626', safe:'#16A34A', bg:'#F0F9FF' };
+const MS = {
+	navy: "#0F2744",
+	teal: "#0D9488",
+	tealLt: "#CCFBF1",
+	sky: "#E0F2FE",
+	warn: "#F59E0B",
+	danger: "#DC2626",
+	safe: "#16A34A",
+	bg: "#F0F9FF",
+};
 
 // ── LOCAL STORAGE ─────────────────────────────────
 const Store = {
-  get(key, fallback = null) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
-  set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+	get(key, fallback = null) {
+		try {
+			const v = localStorage.getItem(key);
+			return v ? JSON.parse(v) : fallback;
+		} catch {
+			return fallback;
+		}
+	},
+	set(key, val) {
+		try {
+			localStorage.setItem(key, JSON.stringify(val));
+		} catch {}
+	},
 };
 
 // ── TIỆN ÍCH NGÀY ────────────────────────────────
 const DateUtil = {
-  today() { return new Date().toISOString().slice(0, 10); },
-  fmt(iso) { return new Date(iso).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+	today() {
+		return new Date().toISOString().slice(0, 10);
+	},
+	fmt(iso) {
+		return new Date(iso).toLocaleDateString("vi-VN", {
+			day: "2-digit",
+			month: "2-digit",
+			year: "numeric",
+		});
+	},
 };
 
 // ── SCROLL REVEAL ────────────────────────────────
 function initScrollReveal() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+	const observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					entry.target.classList.add("revealed");
+					observer.unobserve(entry.target);
+				}
+			});
+		},
+		{ threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
+	);
+	document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 }
 
 // ── MOBILE MENU ──────────────────────────────────
 function toggleMobileMenu() {
-  const menu = document.getElementById('mobile-menu');
-  const btn  = document.getElementById('hamburger-btn');
-  if (!menu || !btn) return;
-  const open = menu.classList.toggle('open');
-  btn.classList.toggle('active', open);
+	const menu = document.getElementById("mobile-menu");
+	const btn = document.getElementById("hamburger-btn");
+	if (!menu || !btn) return;
+	const open = menu.classList.toggle("open");
+	btn.classList.toggle("active", open);
 }
 
 // ── TOAST ────────────────────────────────────────
-function showToast(message, type = 'info') {
-  const colors = { info:'#0D9488', warn:'#F59E0B', danger:'#DC2626' };
-  const toast = document.createElement('div');
-  toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-    background:#fff;border-left:4px solid ${colors[type]||colors.info};border-radius:8px;
+function showToast(message, type = "info") {
+	const colors = { info: "#0D9488", warn: "#F59E0B", danger: "#DC2626" };
+	const toast = document.createElement("div");
+	toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#fff;border-left:4px solid ${colors[type] || colors.info};border-radius:8px;
     box-shadow:0 4px 20px rgba(0,0,0,.12);padding:12px 20px;font-size:.8rem;font-weight:600;
     color:#1e293b;z-index:9999;opacity:0;transition:all .3s;white-space:nowrap;max-width:90vw;`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; });
-  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
+	toast.textContent = message;
+	document.body.appendChild(toast);
+	requestAnimationFrame(() => {
+		toast.style.opacity = "1";
+		toast.style.transform = "translateX(-50%) translateY(0)";
+	});
+	setTimeout(() => {
+		toast.style.opacity = "0";
+		setTimeout(() => toast.remove(), 300);
+	}, 3500);
 }
 
 // ── RENDER HEADER ────────────────────────
 function renderHeader(activePage) {
-  const pages = [
-    { href:'index.html', label:'Trang Chủ', id:'home' },
-    { href:'assessment.html', label:'Sàng Lọc', id:'assessment' },
-    { href:'clinics.html', label:'Tìm Phòng Khám', id:'clinics' },
-    { href:'privacy.html', label:'Bảo Mật', id:'privacy' }
-  ];
-  const navLinks = pages.map(p => `<a href="${p.href}" class="nav-link${activePage === p.id ? ' active' : ''}">${p.label}</a>`).join('');
-  const mobileLinks = pages.map(p => `<div class="mobile-nav-item"><a href="${p.href}" onclick="toggleMobileMenu()" class="mobile-nav-link${activePage === p.id ? ' active' : ''}">${p.label}</a></div>`).join('');
-  return `
+	const pages = [
+		{ href: "index.html", label: "Trang Chủ", id: "home" },
+		{ href: "assessment.html", label: "Sàng Lọc", id: "assessment" },
+		{ href: "chat.html", label: "Chat AI", id: "chat" },
+		{ href: "clinics.html", label: "Tìm Phòng Khám", id: "clinics" },
+		{ href: "privacy.html", label: "Bảo Mật", id: "privacy" },
+	];
+	const navLinks = pages
+		.map(
+			(p) =>
+				`<a href="${p.href}" class="nav-link${activePage === p.id ? " active" : ""}">${p.label}</a>`,
+		)
+		.join("");
+	const mobileLinks = pages
+		.map(
+			(p) =>
+				`<div class="mobile-nav-item"><a href="${p.href}" onclick="toggleMobileMenu()" class="mobile-nav-link${activePage === p.id ? " active" : ""}">${p.label}</a></div>`,
+		)
+		.join("");
+	return `
   <div class="hotline-bar">⚠️ Nếu bạn đang trong tình huống khẩn cấp — <strong>Gọi ngay: 1900 9095</strong> &nbsp;·&nbsp; Đường dây miễn phí 24/7 của Bộ Y tế Việt Nam</div>
   <header class="site-header">
     <div class="header-inner">
@@ -83,11 +131,11 @@ function renderHeader(activePage) {
 
 // ── RENDER FOOTER ────────────────────────
 function renderFooter() {
-  return `
+	return `
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand"><span class="brand-name-sm">MindBuddy</span><p>Công cụ sàng lọc sức khỏe tâm thần dựa trên tiêu chuẩn lâm sàng.<br>Không thay thế chẩn đoán y tế từ chuyên gia.</p></div>
-      <div class="footer-links"><a href="index.html">Trang Chủ</a><a href="assessment.html">Sàng Lọc</a><a href="clinics.html">Tìm Phòng Khám</a><a href="privacy.html">Bảo Mật</a></div>
+      <div class="footer-links"><a href="index.html">Trang Chủ</a><a href="assessment.html">Sàng Lọc</a><a href="chat.html">Chat AI</a><a href="clinics.html">Tìm Phòng Khám</a><a href="privacy.html">Bảo Mật</a></div>
     </div>
     <div class="footer-disclaimer">⚕️ Kết quả sàng lọc chỉ mang tính tham khảo. Để được chẩn đoán chính xác, vui lòng tham khảo bác sĩ hoặc chuyên gia tâm lý có chứng chỉ hành nghề. &nbsp;·&nbsp; Đường dây khẩn: <strong>1900 9095</strong></div>
   </footer>`;
@@ -95,10 +143,10 @@ function renderFooter() {
 
 // ── GLOBAL CSS ───────
 (function injectGlobalCSS() {
-  if (document.getElementById('ms-global-css')) return;
-  const style = document.createElement('style');
-  style.id = 'ms-global-css';
-  style.textContent = `
+	if (document.getElementById("ms-global-css")) return;
+	const style = document.createElement("style");
+	style.id = "ms-global-css";
+	style.textContent = `
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{max-width:100%;overflow-x:hidden}
     html{scroll-behavior:smooth}
@@ -149,21 +197,25 @@ function renderFooter() {
     .section{padding:4rem 0}
     .section-sm{padding:2.5rem 0}
   `;
-  document.head.appendChild(style);
+	document.head.appendChild(style);
 })();
 
 // ── RATING WIDGET ──
-const RATING_URL = 'https://script.google.com/macros/s/AKfycbyoHYpHHw-6ql9IaLUYDNW4_1H_pXdd9AM9sDnFFGe18mst8rzlY84fb397RddY3KX-Jg/exec';
+const RATING_URL =
+	"https://script.google.com/macros/s/AKfycbyoHYpHHw-6ql9IaLUYDNW4_1H_pXdd9AM9sDnFFGe18mst8rzlY84fb397RddY3KX-Jg/exec";
 
 function renderRatingWidget(page) {
-  if (!RATING_URL || RATING_URL === 'YOUR_WEBAPP_URL') { console.warn('Chưa cấu hình RATING_URL'); return; }
-  const storageKey = 'ms_rated_' + page;
-  const lastRated = Store.get(storageKey);
-  if (lastRated && (Date.now() - lastRated < 3 * 60 * 60 * 1000)) return;
+	if (!RATING_URL || RATING_URL === "YOUR_WEBAPP_URL") {
+		console.warn("Chưa cấu hình RATING_URL");
+		return;
+	}
+	const storageKey = "ms_rated_" + page;
+	const lastRated = Store.get(storageKey);
+	if (lastRated && Date.now() - lastRated < 3 * 60 * 60 * 1000) return;
 
-  const widget = document.createElement('div');
-  widget.id = 'ms-rating-widget';
-  widget.innerHTML = `
+	const widget = document.createElement("div");
+	widget.id = "ms-rating-widget";
+	widget.innerHTML = `
     <style>
       #ms-rating-widget {
         position:fixed;bottom:24px;right:24px;z-index:9998;
@@ -202,33 +254,61 @@ function renderRatingWidget(page) {
     </div>
     <div class="rw-msg" id="rw-msg"></div>
   `;
-  document.body.appendChild(widget);
+	document.body.appendChild(widget);
 
-  const stars = widget.querySelectorAll('.rw-star');
-  stars.forEach((star, idx) => {
-    star.addEventListener('mouseenter', () => stars.forEach((s, i) => s.classList.toggle('lit', i <= idx)));
-    star.addEventListener('mouseleave', () => stars.forEach(s => s.classList.remove('lit')));
-    star.addEventListener('click', () => {
-      const rating = star.getAttribute('data-v');
-      stars.forEach(s => { s.disabled = true; s.style.cursor = 'default'; });
-      stars.forEach((s, i) => s.classList.toggle('lit', i <= idx));
-      document.getElementById('rw-msg').textContent = 'Đang gửi...';
-      const iframe = document.createElement('iframe');
-      iframe.name = 'rw-frame-' + Date.now();
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      const form = document.createElement('form');
-      form.method = 'POST'; form.action = RATING_URL; form.target = iframe.name; form.style.display = 'none';
-      [{ name:'rating', value:rating }, { name:'page', value:page || (window.location.pathname.split('/').pop() || 'index') }, { name:'userAgent', value:navigator.userAgent.slice(0,200) }].forEach(f => { const i = document.createElement('input'); i.type = 'hidden'; i.name = f.name; i.value = f.value; form.appendChild(i); });
-      document.body.appendChild(form); form.submit();
-      Store.set(storageKey, Date.now());
-      setTimeout(() => {
-        showToast(`Cảm ơn bạn đã đánh giá ${rating} sao! 🌸`, 'info');
-        const w = document.getElementById('ms-rating-widget'); if (w) w.remove();
-        setTimeout(() => { form.remove(); iframe.remove(); }, 3000);
-      }, 1500);
-    });
-  });
+	const stars = widget.querySelectorAll(".rw-star");
+	stars.forEach((star, idx) => {
+		star.addEventListener("mouseenter", () =>
+			stars.forEach((s, i) => s.classList.toggle("lit", i <= idx)),
+		);
+		star.addEventListener("mouseleave", () =>
+			stars.forEach((s) => s.classList.remove("lit")),
+		);
+		star.addEventListener("click", () => {
+			const rating = star.getAttribute("data-v");
+			stars.forEach((s) => {
+				s.disabled = true;
+				s.style.cursor = "default";
+			});
+			stars.forEach((s, i) => s.classList.toggle("lit", i <= idx));
+			document.getElementById("rw-msg").textContent = "Đang gửi...";
+			const iframe = document.createElement("iframe");
+			iframe.name = "rw-frame-" + Date.now();
+			iframe.style.display = "none";
+			document.body.appendChild(iframe);
+			const form = document.createElement("form");
+			form.method = "POST";
+			form.action = RATING_URL;
+			form.target = iframe.name;
+			form.style.display = "none";
+			[
+				{ name: "rating", value: rating },
+				{
+					name: "page",
+					value: page || window.location.pathname.split("/").pop() || "index",
+				},
+				{ name: "userAgent", value: navigator.userAgent.slice(0, 200) },
+			].forEach((f) => {
+				const i = document.createElement("input");
+				i.type = "hidden";
+				i.name = f.name;
+				i.value = f.value;
+				form.appendChild(i);
+			});
+			document.body.appendChild(form);
+			form.submit();
+			Store.set(storageKey, Date.now());
+			setTimeout(() => {
+				showToast(`Cảm ơn bạn đã đánh giá ${rating} sao! 🌸`, "info");
+				const w = document.getElementById("ms-rating-widget");
+				if (w) w.remove();
+				setTimeout(() => {
+					form.remove();
+					iframe.remove();
+				}, 3000);
+			}, 1500);
+		});
+	});
 }
 
 // ── EXPORTS ────────────────────────

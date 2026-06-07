@@ -30,6 +30,12 @@ Thêm key Groq vào `.env.local`:
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
+Web search có fallback miễn phí bằng DuckDuckGo. Nếu muốn kết quả search tốt hơn, thêm Tavily key (không bắt buộc):
+
+```bash
+TAVILY_API_KEY=your_tavily_api_key_here
+```
+
 Sau đó chạy:
 
 ```bash
@@ -46,7 +52,13 @@ http://localhost:3000
 Trong Vercel Project Settings → Environment Variables, thêm:
 
 ```text
-GROQ_API_KEY=your_groq_api_key_here
+GROQ_API_KEY=your_groq_key
+```
+
+Nếu dùng Tavily để search web tốt hơn, thêm tiếp:
+
+```text
+TAVILY_API_KEY=your_tavily_key
 ```
 
 Không đưa API key vào file `.html` hoặc `.js` phía frontend.
