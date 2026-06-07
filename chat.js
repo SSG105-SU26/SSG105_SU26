@@ -1,296 +1,169 @@
-document.getElementById('header-root').innerHTML = renderHeader('chat');
-document.getElementById('footer-root').innerHTML = renderFooter();
+// ============================================================
+// api/chat.js — MINDBUDDY VERCEL SERVERLESS (Groq)
+// Vercel Dashboard → Settings → Environment Variables:
+//   GROQ_API_KEY = your_groq_api_key_here
+//   TAVILY_API_KEY = your_tavily_key  (tuỳ chọn, search tốt hơn)
+// ============================================================
 
-const SCALES_MAX = { pss14: 56, phq9: 27, gad7: 21, dass21: 42, isi: 28 };
-let chatMessages = Store.get('ms_chat_messages', []);
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-function getLastResult() {
-  return Store.get('ms_last_result');
-}
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-function getStoredPreferences() {
-  const result = getLastResult();
-  return Store.get('ms_user_preferences', result?.chatContext?.userPreferences || '');
-}
-
-function persistUserPreferences(value) {
-  const preferences = String(value || '').trim();
-  Store.set('ms_user_preferences', preferences);
-  const result = getLastResult();
-  if (result?.chatContext) {
-    result.chatContext.userPreferences = preferences;
-    result.chatContext.userProfile = {
-      ...(result.chatContext.userProfile || {}),
-      preferences,
-    };
-    result.userPreferences = preferences;
-    Store.set('ms_last_result', result);
-  }
-  return preferences;
-}
-
-function getChatContext() {
-  const result = getLastResult();
-  if (!result?.chatContext) return null;
-  const preferences = getStoredPreferences();
-  return {
-    ...result.chatContext,
-    userPreferences: preferences,
-    userProfile: {
-      ...(result.chatContext.userProfile || {}),
-      preferences,
-    },
-  };
-}
-
-function persistChatMessages() {
-  Store.set('ms_chat_messages', chatMessages.slice(-30));
-}
-
-function renderMarkdown(content) {
-  if (!window.marked || !window.DOMPurify) return content;
-  const rawHtml = window.marked.parse(content || '', { breaks: true, gfm: true });
-  return window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] });
-}
-
-function secureAssistantLinks(bubble) {
-  bubble.querySelectorAll('a').forEach((link) => {
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-  });
-}
-
-function setBubbleContent(bubble, role, content) {
-  if (role === 'assistant' && !bubble.classList.contains('loading')) {
-    bubble.innerHTML = renderMarkdown(content);
-    secureAssistantLinks(bubble);
-  } else {
-    bubble.textContent = content;
-  }
-}
-
-function appendChatMessage(role, content, extraClass = '') {
-  const list = document.getElementById('chat-messages');
-  if (!list) return null;
-  const bubble = document.createElement('div');
-  bubble.className = `chat-msg ${role} ${extraClass}`.trim();
-  setBubbleContent(bubble, role, content);
-  list.appendChild(bubble);
-  list.scrollTop = list.scrollHeight;
-  return bubble;
-}
-
-function scrollToBottom() {
-  const list = document.getElementById('chat-messages');
-  if (list) {
-    list.scrollTo({
-      top: list.scrollHeight,
-      behavior: 'smooth'
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) {
+    return res.status(500).json({
+      error: 'GROQ_API_KEY chưa được cấu hình trong Vercel Environment Variables.'
     });
   }
-}
-
-function setChatSending(isSending) {
-  const button = document.getElementById('chat-send');
-  const input = document.getElementById('chat-input');
-  if (button) {
-    button.disabled = isSending;
-    button.textContent = isSending ? 'Đang gửi...' : 'Gửi';
-  }
-  if (input) input.disabled = isSending;
-}
-
-function sendSuggestedChat(text) {
-  const input = document.getElementById('chat-input');
-  if (!input) return;
-  input.value = text;
-  sendChatMessage(new Event('submit'));
-  setTimeout(scrollToBottom, 50);
-}
-
-function handleChatKeydown(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    sendChatMessage(new Event('submit'));
-  }
-}
-
-function updateUserPreferences(value) {
-  persistUserPreferences(value);
-}
-
-function addPreferenceSuggestion(text) {
-  const input = document.getElementById('chat-preference-input');
-  if (!input) return;
-  const current = input.value.trim();
-  const parts = current ? current.split(',').map((p) => p.trim()) : [];
-  if (!parts.some((p) => p.toLowerCase() === text.toLowerCase())) {
-    parts.push(text);
-  }
-  input.value = parts.filter(Boolean).join(', ');
-  persistUserPreferences(input.value);
-}
-
-function clearChatHistory() {
-  chatMessages = [];
-  persistChatMessages();
-  renderChatMessages();
-  showToast('Đã xóa lịch sử chat trên trình duyệt này.', 'info');
-}
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-async function sendChatMessage(event) {
-  event.preventDefault();
-  const input = document.getElementById('chat-input');
-  if (!input || input.disabled) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  chatMessages.push({ role: 'user', content: text });
-  persistChatMessages();
-  appendChatMessage('user', text);
-
-  scrollToBottom();
-
-  const loadingBubble = appendChatMessage('assistant', 'MindBuddy đang suy nghĩ...', 'loading');
-  setChatSending(true);
 
   try {
-    const response = await fetch('/api/chat', {
+    const { messages = [], assessment } = req.body || {};
+
+    // ── Xây dựng system prompt từ assessment context ──────────
+    const systemPrompt = buildSystemPrompt(assessment);
+
+    // ── Kiểm tra web search request ──────────────────────────
+    const lastMsg = messages[messages.length - 1]?.content || '';
+    const wantsSearch = /tìm web|search|tìm kiếm|tìm trên|tài nguyên mới/i.test(lastMsg);
+
+    let searchResults = '';
+    if (wantsSearch) {
+      searchResults = await doSearch(lastMsg, assessment);
+    }
+
+    // ── Inject search results vào message nếu có ─────────────
+    const finalMessages = [...messages];
+    if (searchResults && finalMessages.length > 0) {
+      const last = finalMessages[finalMessages.length - 1];
+      finalMessages[finalMessages.length - 1] = {
+        ...last,
+        content: `${last.content}\n\n[Kết quả tìm kiếm web]\n${searchResults}`
+      };
+    }
+
+    // ── Gọi Groq API ──────────────────────────────────────────
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: chatMessages, assessment: getChatContext() }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1024,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...finalMessages
+        ]
+      })
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Không gọi được API chat.');
 
-    const reply = data.reply || 'Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.';
-    if (loadingBubble) {
-      loadingBubble.classList.remove('loading');
-      setBubbleContent(loadingBubble, 'assistant', reply);
-    } else {
-      appendChatMessage('assistant', reply);
+    if (!groqRes.ok) {
+      const err = await groqRes.json().catch(() => ({}));
+      return res.status(groqRes.status).json({
+        error: err.error?.message || `Groq API lỗi ${groqRes.status}`
+      });
     }
-    chatMessages.push({ role: 'assistant', content: reply });
-    persistChatMessages();
 
-    scrollToBottom();
-  } catch (error) {
-    const fallback = `${error.message}\n\nHãy kiểm tra server đang chạy bằng npm start/vercel và đã cấu hình GROQ_API_KEY.`;
-    if (loadingBubble) {
-      loadingBubble.classList.remove('loading');
-      loadingBubble.textContent = fallback;
-    } else {
-      appendChatMessage('assistant', fallback);
+    const data = await groqRes.json();
+    const reply = data.choices?.[0]?.message?.content || 'Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.';
+
+    return res.status(200).json({ reply });
+
+  } catch (err) {
+    console.error('MindBuddy API error:', err);
+    return res.status(500).json({ error: 'Đã xảy ra lỗi. Vui lòng thử lại.' });
+  }
+}
+
+// ── System prompt builder ─────────────────────────────────────
+function buildSystemPrompt(ctx) {
+  const base = `Bạn là MindBuddy AI — người bạn đồng hành sức khỏe tinh thần thân thiện, ấm áp, am hiểu tâm lý học.
+
+NGUYÊN TẮC BẮT BUỘC:
+1. KHÔNG chẩn đoán bệnh tâm thần cụ thể
+2. KHÔNG kê đơn thuốc hoặc gợi ý liều lượng
+3. LUÔN nhắc gặp chuyên gia nếu triệu chứng mức vừa/nặng
+4. Dấu hiệu khủng hoảng/tự hại → cung cấp ngay hotline 1900 9095
+5. Trả lời bằng Markdown rõ ràng (dùng **bold**, ## heading, - bullet khi phù hợp)
+
+PHONG CÁCH: Ấm áp, thực tế, ngắn gọn (tối đa 4 đoạn trừ khi được hỏi chi tiết). Dùng tiếng Việt tự nhiên.`;
+
+  if (!ctx) return base;
+
+  const scoreStr = typeof ctx.scores === 'object'
+    ? Object.entries(ctx.scores).map(([k, v]) => `${k}: ${v}`).join(', ')
+    : `${ctx.scores}`;
+
+  const crisisNote = ctx.result?.hasCrisis
+    ? '\n⚠️ NGƯỜI DÙNG CÓ CÂU TRẢ LỜI LIÊN QUAN ĐẾN TỰ HẠI — ưu tiên nhắc hotline 1900 9095.'
+    : '';
+
+  const prefNote = ctx.userPreferences
+    ? `\nSỞ THÍCH: ${ctx.userPreferences}`
+    : '';
+
+  const highNote = ctx.answers?.filter(a => a.selectedIndex >= 2).length > 0
+    ? `\nCÂU TRẢ LỜI ĐÁNG CHÚ Ý: ${ctx.answers.filter(a => a.selectedIndex >= 2).map(a => `"${a.question}" (${a.selectedLabel})`).slice(0, 5).join('; ')}`
+    : '';
+
+  return `${base}
+
+KẾT QUẢ SÀNG LỌC CỦA NGƯỜI DÙNG:
+- Thang đo: ${ctx.scale?.name || ctx.scale?.id}
+- Điểm: ${scoreStr}
+- Mức độ: ${ctx.result?.levelLabel || 'N/A'}
+- Đánh giá: ${ctx.result?.title || ''}
+- Mô tả: ${ctx.result?.desc || ''}${crisisNote}${prefNote}${highNote}
+
+Hãy dùng thông tin này để cá nhân hóa phản hồi. KHÔNG đưa ra chẩn đoán lâm sàng.`;
+}
+
+// ── Web search (Tavily → DuckDuckGo fallback) ─────────────────
+async function doSearch(query, ctx) {
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  const searchQuery = ctx?.userPreferences
+    ? `${query} ${ctx.userPreferences} sức khỏe tâm thần`
+    : `${query} sức khỏe tâm thần Việt Nam`;
+
+  // Thử Tavily trước
+  if (tavilyKey) {
+    try {
+      const r = await fetch('https://api.tavily.com/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: tavilyKey,
+          query: searchQuery,
+          max_results: 4,
+          search_depth: 'basic'
+        })
+      });
+      if (r.ok) {
+        const d = await r.json();
+        return (d.results || [])
+          .map(r => `- **${r.title}**: ${r.content?.slice(0, 200)}... [${r.url}]`)
+          .join('\n');
+      }
+    } catch {}
+  }
+
+  // Fallback DuckDuckGo
+  try {
+    const encoded = encodeURIComponent(searchQuery);
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encoded}&format=json&no_html=1&skip_disambig=1`);
+    if (r.ok) {
+      const d = await r.json();
+      const items = (d.RelatedTopics || []).slice(0, 4)
+        .filter(t => t.Text)
+        .map(t => `- ${t.Text}`);
+      return items.length ? items.join('\n') : '';
     }
-    chatMessages.push({ role: 'assistant', content: fallback });
-    persistChatMessages();
-  } finally {
-    setChatSending(false);
-    input.focus();
-  }
+  } catch {}
+
+  return '';
 }
-
-function renderChatMessages() {
-  const list = document.getElementById('chat-messages');
-  if (!list) return;
-  list.innerHTML = '';
-  if (!chatMessages.length) {
-    appendChatMessage('assistant', 'Mình đã sẵn sàng trò chuyện dựa trên kết quả trắc nghiệm gần nhất của bạn. Bạn có thể hỏi về động viên, giải pháp thực tế, hoặc gợi ý nhạc/podcast/phim phù hợp.');
-    return;
-  }
-  chatMessages.forEach((m) => appendChatMessage(m.role, m.content));
-}
-
-function renderPage() {
-  const result = getLastResult();
-  const content = document.getElementById('chat-content');
-  if (!result?.chatContext) {
-    content.innerHTML = `
-      <div class="empty-state">
-        <span class="emoji">🧭</span>
-        <h2>Chưa có dữ liệu trắc nghiệm</h2>
-        <p>Để MindBuddy trò chuyện sát hơn với tình trạng của bạn, hãy hoàn thành một bài sàng lọc trước. Sau đó bạn có thể quay lại Chat AI bất cứ lúc nào.</p>
-        <a class="primary-link" href="assessment.html">Làm trắc nghiệm ngay →</a>
-      </div>`;
-    return;
-  }
-
-  const ctx = getChatContext();
-  const preferences = getStoredPreferences();
-  const escapedPreferences = escapeHtml(preferences);
-  const scoreText = typeof ctx.scores === 'number'
-    ? `${ctx.scores}/${SCALES_MAX[ctx.scale.id] || ''}`
-    : Object.entries(ctx.scores || {}).map(([k, v]) => `${k}: ${v}`).join(' · ');
-
-  content.innerHTML = `
-    <section class="summary-card">
-      <span class="summary-pill">${ctx.scale.name}</span>
-      <span class="summary-pill">${ctx.result.levelLabel || 'Đã hoàn thành'}</span>
-      <span class="summary-text">Kết quả gần nhất: <strong>${scoreText}</strong>. MindBuddy sẽ dùng dữ liệu trắc nghiệm và sở thích của bạn làm ngữ cảnh chat.</span>
-      <a class="head-btn" href="assessment.html">Làm lại trắc nghiệm</a>
-    </section>
-
-    <section class="preference-panel">
-      <h2>Sở thích cá nhân hóa phản hồi</h2>
-      <p>Bạn có thể cập nhật bất cứ lúc nào. MindBuddy sẽ ưu tiên gợi ý hoạt động, nhạc, podcast hoặc phim dựa trên phần này.</p>
-      <textarea id="chat-preference-input" placeholder="Ví dụ: Tôi thích nghe nhạc indie, xem phim hoạt hình nhẹ nhàng, đi dạo buổi tối..." oninput="updateUserPreferences(this.value)">${escapedPreferences}</textarea>
-      <div class="preference-chip-row">
-        <button type="button" onclick="addPreferenceSuggestion('nghe nhạc thư giãn')">Nhạc thư giãn</button>
-        <button type="button" onclick="addPreferenceSuggestion('xem phim nhẹ nhàng')">Phim nhẹ nhàng</button>
-        <button type="button" onclick="addPreferenceSuggestion('podcast tâm lý')">Podcast tâm lý</button>
-        <button type="button" onclick="addPreferenceSuggestion('đi bộ')">Đi bộ</button>
-        <button type="button" onclick="addPreferenceSuggestion('viết nhật ký')">Viết nhật ký</button>
-        <button type="button" onclick="addPreferenceSuggestion('vẽ hoặc làm đồ thủ công')">Vẽ / thủ công</button>
-      </div>
-    </section>
-
-    <section class="chat-card">
-      <div class="chat-head">
-        <div class="chat-head-title">
-          <div class="chat-avatar">💬</div>
-          <div>
-            <h2>Trò chuyện với MindBuddy</h2>
-            <p>Dựa trên kết quả ${ctx.scale.name} gần nhất lưu trên trình duyệt này.</p>
-          </div>
-        </div>
-        <div class="head-actions">
-          <button class="head-btn" type="button" onclick="clearChatHistory()">Xóa lịch sử chat</button>
-          <a class="head-btn" href="assessment.html">Trắc nghiệm khác</a>
-        </div>
-      </div>
-
-      <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
-
-      <div class="suggestions">
-        <button type="button" onclick="sendSuggestedChat('Hãy động viên tôi và giải thích kết quả này nhẹ nhàng')">Động viên tôi</button>
-        <button type="button" onclick="sendSuggestedChat('Cho tôi giải pháp thực tế trong 24 giờ và 7 ngày tới')">Giải pháp thực tế</button>
-        <button type="button" onclick="sendSuggestedChat('Gợi ý nhạc, podcast và phim nhẹ nhàng phù hợp với tình trạng của tôi')">Nhạc · podcast · phim</button>
-        <button type="button" onclick="sendSuggestedChat('Tôi thích nghe nhạc và xem phim, hãy gợi ý theo sở thích đó')">Theo sở thích của tôi</button>
-        <button type="button" onclick="sendSuggestedChat('Tìm trên web vài tài nguyên mới phù hợp với sở thích và kết quả trắc nghiệm của tôi')">Tìm web theo sở thích</button>
-      </div>
-
-      <form class="chat-form" onsubmit="sendChatMessage(event)">
-        <textarea id="chat-input" rows="1" placeholder="Nhập câu hỏi của bạn..." onkeydown="handleChatKeydown(event)"></textarea>
-        <button id="chat-send" type="submit">Gửi</button>
-      </form>
-      <div class="chat-note">Nếu bạn đang có ý nghĩ tự làm hại bản thân hoặc đang trong tình huống khẩn cấp, hãy gọi <strong>1900 9095</strong>, đến cơ sở y tế gần nhất, hoặc nhờ người thân ở cạnh ngay.</div>
-    </section>`;
-
-  renderChatMessages();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  initScrollReveal();
-  renderPage();
-});
