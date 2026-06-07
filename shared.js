@@ -60,6 +60,7 @@ function renderHeader(activePage) {
     { href:'assessment.html', label:'Sàng Lọc', id:'assessment' },
     { href:'clinics.html', label:'Tìm Phòng Khám', id:'clinics' },
     { href:'privacy.html', label:'Bảo Mật', id:'privacy' }
+    { href:'chat.html', label:'Trò Chuyện AI', id:'chat' }
   ];
   const navLinks = pages.map(p => `<a href="${p.href}" class="nav-link${activePage === p.id ? ' active' : ''}">${p.label}</a>`).join('');
   const mobileLinks = pages.map(p => `<div class="mobile-nav-item"><a href="${p.href}" onclick="toggleMobileMenu()" class="mobile-nav-link${activePage === p.id ? ' active' : ''}">${p.label}</a></div>`).join('');
