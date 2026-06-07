@@ -60,6 +60,8 @@
                 };
         </script>
         <script defer src="/_vercel/insights/script.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
         <style>
             body {
@@ -716,6 +718,21 @@
                 overflow: hidden;
                 box-shadow: 0 14px 36px rgba(255, 123, 142, 0.1);
             }
+            .chatbot-card.fullscreen {
+                position: fixed;
+                inset: 0;
+                z-index: 10001;
+                margin: 0;
+                border: 0;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                height: 100dvh;
+            }
+            body.chatbot-fullscreen-open {
+                overflow: hidden;
+            }
             .chatbot-head {
                 display: flex;
                 align-items: flex-start;
@@ -724,6 +741,27 @@
                 padding: 1.2rem 1.4rem;
                 background: linear-gradient(135deg, #fff5f3, #ffe8e6);
                 border-bottom: 1.5px solid #ffe0d6;
+            }
+            .chatbot-head-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .chatbot-expand {
+                border: 1px solid #ffd9d0;
+                background: #fff;
+                color: #ff5a70;
+                border-radius: 99px;
+                padding: 0.3rem 0.75rem;
+                font-size: 0.66rem;
+                font-weight: 800;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .chatbot-expand:hover {
+                background: #fff0eb;
             }
             .chatbot-head h3 {
                 font-family: "Playfair Display", serif;
@@ -756,6 +794,11 @@
                 flex-direction: column;
                 gap: 0.75rem;
             }
+            .chatbot-card.fullscreen .chatbot-messages {
+                flex: 1;
+                height: auto;
+                padding: 1.25rem;
+            }
             .chat-msg {
                 max-width: 86%;
                 border-radius: 18px;
@@ -781,6 +824,44 @@
             .chat-msg.loading {
                 color: #a28b8b;
                 font-style: italic;
+            }
+            .chat-msg.assistant h1,
+            .chat-msg.assistant h2,
+            .chat-msg.assistant h3 {
+                color: #3d2a2a;
+                font-family: "Playfair Display", serif;
+                line-height: 1.25;
+                margin: 0.25rem 0 0.55rem;
+            }
+            .chat-msg.assistant h2 {
+                font-size: 1rem;
+            }
+            .chat-msg.assistant h3 {
+                font-size: 0.92rem;
+            }
+            .chat-msg.assistant p {
+                margin: 0.35rem 0;
+            }
+            .chat-msg.assistant ul,
+            .chat-msg.assistant ol {
+                margin: 0.35rem 0 0.55rem 1.1rem;
+                padding: 0;
+            }
+            .chat-msg.assistant li {
+                margin: 0.22rem 0;
+            }
+            .chat-msg.assistant a {
+                color: #e54961;
+                font-weight: 700;
+                text-decoration: none;
+                border-bottom: 1px solid rgba(229, 73, 97, 0.25);
+            }
+            .chat-msg.assistant a:hover {
+                color: #c7434a;
+                border-bottom-color: #c7434a;
+            }
+            .chat-msg.assistant strong {
+                color: #3d2a2a;
             }
             .chatbot-suggestions {
                 display: flex;
@@ -1975,6 +2056,34 @@
                     selectedIndex: answers[index],
                     selectedLabel: getAnswerLabel(scale, q, answers[index]),
                 }));
+                const maxOptionIndex =
+                    scale.id === "isi" ? 4 : (scale.options?.length || 1) - 1;
+                const highIntensityAnswers = answerDetails.filter(
+                    (a) => a.selectedIndex >= Math.max(1, maxOptionIndex - 1),
+                );
+                const crisisAnswers = answerDetails.filter(
+                    (a) => a.isCrisis && a.selectedIndex > 0,
+                );
+                const answerSections =
+                    scale.id === "dass21"
+                        ? {
+                              depression: answerDetails.filter(
+                                  (a) => a.subscale === "D",
+                              ),
+                              anxiety: answerDetails.filter(
+                                  (a) => a.subscale === "A",
+                              ),
+                              stress: answerDetails.filter(
+                                  (a) => a.subscale === "S",
+                              ),
+                              highIntensity: highIntensityAnswers,
+                              crisis: crisisAnswers,
+                          }
+                        : {
+                              all: answerDetails,
+                              highIntensity: highIntensityAnswers,
+                              crisis: crisisAnswers,
+                          };
 
                 return {
                     scale: {
@@ -1997,6 +2106,7 @@
                         sClass: result.sClass || null,
                     },
                     answers: answerDetails,
+                    answerSections,
                     disclaimer:
                         "Kết quả chỉ là sàng lọc tham khảo, không thay thế chẩn đoán y khoa.",
                 };
@@ -2270,16 +2380,19 @@
               <h3>💬 Chat với MindBuddy</h3>
               <p>Hỏi thêm về kết quả ${scale.name}, các câu bạn vừa trả lời, và bước tiếp theo an toàn.</p>
             </div>
-            <span class="chatbot-status">AI hỗ trợ · Groq</span>
+            <div class="chatbot-head-actions">
+              <span class="chatbot-status">AI hỗ trợ · Groq</span>
+              <button class="chatbot-expand" type="button" onclick="toggleChatFullscreen()" id="chatbot-expand-btn">Toàn màn hình</button>
+            </div>
           </div>
           <div class="chatbot-messages" id="chatbot-messages" aria-live="polite">
             <div class="chat-msg assistant">Mình đã xem kết quả sàng lọc ${scale.name} của bạn. Bạn có thể hỏi mình giải thích điểm số, câu trả lời nổi bật, hoặc nên làm gì tiếp theo. Lưu ý: mình không thay thế bác sĩ/chuyên gia tâm lý.</div>
           </div>
           <div class="chatbot-suggestions">
-            <button type="button" onclick="sendSuggestedChat('Giải thích kết quả của tôi bằng ngôn ngữ dễ hiểu')">Giải thích kết quả</button>
-            <button type="button" onclick="sendSuggestedChat('Những câu trả lời nào đáng chú ý nhất?')">Câu đáng chú ý</button>
-            <button type="button" onclick="sendSuggestedChat('Tôi nên làm gì trong 7 ngày tới?')">Kế hoạch 7 ngày</button>
-            <button type="button" onclick="sendSuggestedChat('Khi nào tôi nên gặp chuyên gia?')">Khi nào cần gặp chuyên gia?</button>
+            <button type="button" onclick="sendSuggestedChat('Hãy động viên tôi và giải thích kết quả này nhẹ nhàng')">Động viên tôi</button>
+            <button type="button" onclick="sendSuggestedChat('Cho tôi giải pháp thực tế trong 24 giờ và 7 ngày tới')">Giải pháp thực tế</button>
+            <button type="button" onclick="sendSuggestedChat('Gợi ý nhạc, podcast và phim nhẹ nhàng phù hợp với tình trạng của tôi')">Nhạc · podcast · phim</button>
+            <button type="button" onclick="sendSuggestedChat('Tôi thích nghe nhạc và xem phim, hãy gợi ý theo sở thích đó')">Theo sở thích của tôi</button>
           </div>
           <form class="chatbot-form" onsubmit="sendChatMessage(event)">
             <textarea id="chatbot-input" rows="1" placeholder="Nhập câu hỏi của bạn..." onkeydown="handleChatKeydown(event)"></textarea>
@@ -2308,12 +2421,42 @@
                 return Store.get("ms_last_result")?.chatContext || null;
             }
 
+            function renderMarkdown(content) {
+                if (!window.marked || !window.DOMPurify) return content;
+                const rawHtml = window.marked.parse(content || "", {
+                    breaks: true,
+                    gfm: true,
+                });
+                return window.DOMPurify.sanitize(rawHtml, {
+                    ADD_ATTR: ["target", "rel"],
+                });
+            }
+
+            function secureAssistantLinks(bubble) {
+                bubble.querySelectorAll("a").forEach((link) => {
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                });
+            }
+
+            function setBubbleContent(bubble, role, content) {
+                if (
+                    role === "assistant" &&
+                    !bubble.classList.contains("loading")
+                ) {
+                    bubble.innerHTML = renderMarkdown(content);
+                    secureAssistantLinks(bubble);
+                } else {
+                    bubble.textContent = content;
+                }
+            }
+
             function appendChatMessage(role, content, extraClass = "") {
                 const list = document.getElementById("chatbot-messages");
                 if (!list) return null;
                 const bubble = document.createElement("div");
                 bubble.className = `chat-msg ${role} ${extraClass}`.trim();
-                bubble.textContent = content;
+                setBubbleContent(bubble, role, content);
                 list.appendChild(bubble);
                 list.scrollTop = list.scrollHeight;
                 return bubble;
@@ -2327,6 +2470,23 @@
                     button.textContent = isSending ? "Đang gửi..." : "Gửi";
                 }
                 if (input) input.disabled = isSending;
+            }
+
+            function toggleChatFullscreen() {
+                const card = document.getElementById("mindbuddy-chatbot");
+                const button = document.getElementById("chatbot-expand-btn");
+                if (!card) return;
+                const isFullscreen = card.classList.toggle("fullscreen");
+                document.body.classList.toggle(
+                    "chatbot-fullscreen-open",
+                    isFullscreen,
+                );
+                if (button)
+                    button.textContent = isFullscreen
+                        ? "Thu nhỏ"
+                        : "Toàn màn hình";
+                const list = document.getElementById("chatbot-messages");
+                if (list) list.scrollTop = list.scrollHeight;
             }
 
             function sendSuggestedChat(text) {
@@ -2381,7 +2541,7 @@
                         "Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.";
                     if (loadingBubble) {
                         loadingBubble.classList.remove("loading");
-                        loadingBubble.textContent = reply;
+                        setBubbleContent(loadingBubble, "assistant", reply);
                     } else {
                         appendChatMessage("assistant", reply);
                     }
