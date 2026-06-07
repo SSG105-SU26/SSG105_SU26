@@ -80,6 +80,16 @@ function appendChatMessage(role, content, extraClass = '') {
   return bubble;
 }
 
+function scrollToBottom() {
+  const list = document.getElementById('chat-messages');
+  if (list) {
+    list.scrollTo({
+      top: list.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+}
+
 function setChatSending(isSending) {
   const button = document.getElementById('chat-send');
   const input = document.getElementById('chat-input');
@@ -95,6 +105,7 @@ function sendSuggestedChat(text) {
   if (!input) return;
   input.value = text;
   sendChatMessage(new Event('submit'));
+  setTimeout(scrollToBottom, 50);
 }
 
 function handleChatKeydown(event) {
@@ -148,6 +159,9 @@ async function sendChatMessage(event) {
   chatMessages.push({ role: 'user', content: text });
   persistChatMessages();
   appendChatMessage('user', text);
+
+  scrollToBottom();
+
   const loadingBubble = appendChatMessage('assistant', 'MindBuddy đang suy nghĩ...', 'loading');
   setChatSending(true);
 
@@ -169,6 +183,8 @@ async function sendChatMessage(event) {
     }
     chatMessages.push({ role: 'assistant', content: reply });
     persistChatMessages();
+
+    scrollToBottom();
   } catch (error) {
     const fallback = `${error.message}\n\nHãy kiểm tra server đang chạy bằng npm start/vercel và đã cấu hình GROQ_API_KEY.`;
     if (loadingBubble) {
