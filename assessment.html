@@ -2721,7 +2721,7 @@
                 scrollToBottom();
                 const loadingBubble = appendChatMessage(
                     "assistant",
-                    "MindBuddy đang suy nghĩ",
+                    "MindBuddy đang suy nghĩ...",
                     "loading",
                 );
                 if (loadingBubble) {
@@ -2740,12 +2740,16 @@
                     });
                     const data = await response.json().catch(() => ({}));
                     if (!response.ok)
-                        throw new Error(data.error || "Không gọi được API chat.");
+                        throw new Error(
+                            data.error || "Không gọi được API chat.",
+                        );
 
-                    const reply = data.reply || "Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.";
+                    const reply =
+                        data.reply ||
+                        "Mình chưa tạo được phản hồi. Bạn thử hỏi lại nhé.";
                     if (loadingBubble) {
                         loadingBubble.classList.remove("loading");
-                        setBubbleContent(loadingBubble, "assistant", reply); 
+                        setBubbleContent(loadingBubble, "assistant", reply);
                     } else {
                         appendChatMessage("assistant", reply);
                     }
