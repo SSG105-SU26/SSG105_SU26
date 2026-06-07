@@ -196,6 +196,18 @@ function renderFooter() {
     .container{max-width:1100px;margin:0 auto;padding:0 1.25rem}
     .section{padding:4rem 0}
     .section-sm{padding:2.5rem 0}
+	@keyframes typingBlink {
+	0%, 100% { opacity: 0.2; }
+	50% { opacity: 1; }
+	}
+	.typing-dot {
+	animation: typingBlink 1.4s infinite both;
+	display: inline-block;
+	font-size: 1.2rem;
+	line-height: 1;
+	}
+	.typing-dot:nth-child(2) { animation-delay: .2s; }
+	.typing-dot:nth-child(3) { animation-delay: .4s; }
   `;
 	document.head.appendChild(style);
 })();
